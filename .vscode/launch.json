@@ -5,8 +5,7 @@
             "name": "Python: FastAPI",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/main.py",
-            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/frontend/main.py",
             "justMyCode": true,
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
