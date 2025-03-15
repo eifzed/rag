@@ -9,13 +9,7 @@ class ContextBase(BaseModel):
 class ContextCreate(ContextBase):
     pass
 
-class ContextResponse(ContextBase):
-    id: str
-    created_at: datetime
-    updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
 
 class DocumentBase(BaseModel):
     filename: str
@@ -41,3 +35,13 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     sources: Optional[List[str]] = None
+
+
+class ContextResponse(ContextBase):
+    id: str
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    files: Optional[List[DocumentResponse]] = None
+
+    class Config:
+        from_attributes = True
