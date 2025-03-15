@@ -8,8 +8,9 @@ from utils.document_processor import DocumentProcessor
 async def insert_context_files(context_id:str, files:List[UploadFile], db:Session):
     try:
         for file in files:
-                if file.content_type != "application/pdf":
-                    continue
+                # if not file.content_type:
+                #     file.content_type = "application/pdf"
+                    
                     
                 file_content = await file.read()
                 
@@ -25,7 +26,7 @@ async def insert_context_files(context_id:str, files:List[UploadFile], db:Sessio
                 db.refresh(document)
                 
                 # Process document
-                text = DocumentProcessor.extract_text_from_pdf(file_content)
+                text = DocumentProcessor.extract_text_from_md(file_content)
                 chunks = DocumentProcessor.chunk_text(text)
                 
                 # vectorspace = DocumentProcessor.get_vectorspace(chunks)
@@ -42,5 +43,6 @@ async def insert_context_files(context_id:str, files:List[UploadFile], db:Sessio
                 
                 db.commit()
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
     

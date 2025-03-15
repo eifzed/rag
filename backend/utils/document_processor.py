@@ -21,13 +21,17 @@ client = openai.OpenAI()
 class DocumentProcessor:
     @staticmethod
     def extract_text_from_pdf(file_data):
-        """Extract text from PDF file"""
-        pdf_file = BytesIO(file_data)
-        pdf_reader = PyPDF2.PdfReader(pdf_file)
-        text = ""
-        for page in pdf_reader.pages:
-            text += page.extract_text() + "\n"
-        return text
+        """Extracts text from a PDF file (given bytes)."""
+        text = []
+        reader = PyPDF2.PdfReader(BytesIO(file_data))  # Read from memory
+        for page in reader.pages:
+            text.append(page.extract_text() or "")
+        return "\n".join(text)
+    
+    @staticmethod
+    def extract_text_from_md(file_data):
+        """Extracts text from a MD file (given bytes)."""
+        return file_data.decode("utf-8")
 
     @staticmethod
     def chunk_text(text):
