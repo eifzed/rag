@@ -1,6 +1,7 @@
 import gradio as gr
 import requests
 import re
+import mimetypes
 
 # Backend API URLs
 BASE_URL = "http://localhost:8000/api"
@@ -30,16 +31,26 @@ def get_contexts():
 
 # Function to upload a file to a context
 def upload_file(context_id, file):
-    if context_id == "" or file is None:
+    if not context_id or file is None:
         return "Please select a context and upload a file."
-    
-    files = {"files": file}
-    response = requests.post(f"{CONTEXTS_URL}/{context_id}/file", files=files)
-    
-    if response.status_code == 200:
-        return "File uploaded successfully!"
-    else:
-        return f"Error: {response.text}"
+
+    context_id = extract_id(context_id)
+
+    # Get file name and determine content type
+    file_name = getattr(file, "name", "unknown")
+    content_type = mimetypes.guess_type(file_name)[0] or "application/octet-stream"
+
+    # Ensure the file is correctly structured
+    files = {"files": (file_name, file, content_type)}
+
+    try:
+        response = requests.post(f"{CONTEXTS_URL}/{context_id}/file", files=files)
+        if response.status_code == 200:
+            return "File uploaded successfully!"
+        else:
+            return f"Error: {response.text}"
+    except requests.exceptions.RequestException as e:
+        return f"Request failed: {e}"
 
 # Function to chat with RAG
 def chat_with_rag(context_id, message, history):
