@@ -5,13 +5,12 @@ from models.models import Context, Document, DocumentChunk
 from utils.document_processor import DocumentProcessor
 
 
-async def insert_context_files(context_id:str, files:List[UploadFile], db:Session):
+async def insert_context_document(context_id:str, files:List[UploadFile], db:Session)->List[Document]:
     try:
-        for file in files:
+            documents = []
+            for file in files:
                 # if not file.content_type:
                 #     file.content_type = "application/pdf"
-                    
-                    
                 file_content = await file.read()
                 
                 # Save document to database
@@ -24,9 +23,11 @@ async def insert_context_files(context_id:str, files:List[UploadFile], db:Sessio
                 db.add(document)
                 db.commit()
                 db.refresh(document)
+
+                documents.append(document)
                 
                 # Process document
-                text = DocumentProcessor.extract_text_from_md(file_content)
+                text = DocumentProcessor.extract_text_from_file(file_content, file.content_type)
                 chunks = DocumentProcessor.chunk_text(text)
                 
                 # vectorspace = DocumentProcessor.get_vectorspace(chunks)
@@ -42,6 +43,7 @@ async def insert_context_files(context_id:str, files:List[UploadFile], db:Sessio
                     db.add(chunk)
                 
                 db.commit()
+            return documents
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))

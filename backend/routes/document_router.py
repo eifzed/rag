@@ -6,59 +6,32 @@ from utils.database import get_db
 from models.models import Context, Document, DocumentChunk
 from schemas import DocumentResponse
 from utils.document_processor import DocumentProcessor
+from routes.context_helper import insert_context_document
+from sqlalchemy import delete
+
+
 
 router = APIRouter()
 
-@router.post("/contexts/{context_id}/documents", response_model=DocumentResponse)
+@router.post("/contexts/{context_id}/documents", response_model=List[DocumentResponse])
 async def add_document(
     context_id: str = Path(...),
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
     """
-    Add a new document to a context
+    Add new file to existing context
     """
-    # Check if context exists
     context = db.query(Context).filter(Context.id == context_id).first()
     if not context:
         raise HTTPException(status_code=404, detail="Context not found")
     
-    # Check file type
-    if file.content_type != "application/pdf":
-        raise HTTPException(status_code=400, detail="Only PDF files are supported")
+    if not files or len(files) == 0:
+        raise HTTPException(status_code=404, detail="a document must be provided")
     
-    # Read file content
-    file_content = await file.read()
-    
-    # Save document to database
-    document = Document(
-        context_id=context_id,
-        filename=file.filename,
-        content_type=file.content_type,
-        file_data=file_content
-    )
-    db.add(document)
-    db.commit()
-    db.refresh(document)
-    
-    # Process document
-    text = DocumentProcessor.extract_text_from_pdf(file_content)
-    chunks = DocumentProcessor.chunk_text(text)
-    
-    # Save chunks with embeddings
-    for i, chunk_text in enumerate(chunks):
-        embedding = DocumentProcessor.get_embedding(chunk_text)
-        chunk = DocumentChunk(
-            document_id=document.id,
-            chunk_index=i,
-            content=chunk_text,
-            embedding=embedding
-        )
-        db.add(chunk)
-    
-    db.commit()
-    
-    return document
+    inserted_docs = await insert_context_document(context.id, files, db)
+
+    return inserted_docs
 
 @router.get("/contexts/{context_id}/documents", response_model=List[DocumentResponse])
 def get_documents_by_context(
@@ -76,20 +49,22 @@ def get_documents_by_context(
     documents = db.query(Document).filter(Document.context_id == context_id).all()
     return documents
 
-@router.delete("/documents/{document_id}")
+@router.delete("/contexts/{context_id}/documents/{document_id}")
 def delete_document(
+    context_id: str = Path(...),
     document_id: str = Path(...),
     db: Session = Depends(get_db)
 ):
     """
     Delete a document and its chunks
     """
-    document = db.query(Document).filter(Document.id == document_id).first()
-    if not document:
-        raise HTTPException(status_code=404, detail="Document not found")
+    context = db.query(Document).filter(Document.id == document_id).first()
+    if not context:
+        raise HTTPException(status_code=404, detail="Context not found")
     
-    # Delete document (cascade will delete chunks)
-    db.delete(document)
+    db.execute(delete(DocumentChunk).where(DocumentChunk.document_id == document_id))
+    db.execute(delete(Document).where(Document.id == document_id))    
+    
     db.commit()
     
     return {"message": "Document deleted successfully"}

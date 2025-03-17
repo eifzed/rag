@@ -12,3 +12,6 @@ langchain
 langchain-openai
 langchain_chroma
 gradio
+pymupdf
+pandas
+docx

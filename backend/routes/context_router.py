@@ -1,14 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
-import json
 
 from utils.database import get_db
 from models.models import Context, Document, DocumentChunk
-from schemas import ContextCreate, ContextResponse
-from utils.document_processor import DocumentProcessor
+from schemas import ContextCreate, ContextResponse, BaseResponse
+from sqlalchemy import delete
 
-from routes.context_helper import insert_context_files
+from routes.context_helper import insert_context_document
 
 router = APIRouter()
 
@@ -36,7 +35,7 @@ async def create_context(
     
     # Process files if provided
     if files:
-        await insert_context_files(context.id, files, db)
+        await insert_context_document(context.id, files, db)
         
     return ContextResponse.model_validate(context)
 
@@ -78,7 +77,36 @@ async def update_context_file(
     
     if not files:
         raise HTTPException(status_code=403, detail="Please provide the files to be uploaded")
-    await insert_context_files(context.id, files, db)
+    await insert_context_document(context.id, files, db)
 
     return ContextResponse.model_validate(context)
+
+
+@router.delete("/contexts/{context_id}", response_model=BaseResponse)
+async def delete_context(
+    context_id: str,
+    db:Session = Depends(get_db)):
+    """
+    Delete context, documents, and document_chunk by context id
+    """
+    context = db.query(Context).filter(Context.id == context_id).first()
+    if not context:
+        raise HTTPException(status_code=404, detail="Context not found")
+
+    documents = db.query(Document).filter(Document.context_id == context_id).all()
+
+    doc_ids = []
+
+    for doc in documents:
+        doc_ids.append(doc.id)
+
+    if len(doc_ids) > 0:
+        db.execute(delete(DocumentChunk).where(DocumentChunk.document_id.in_ == doc_ids))
+        db.execute(delete(Document).where(Document.id.in_ == doc_ids))    
+    
+    db.execute(delete(Context).where(Context.id == context_id))
+
+    db.commit()
+    return BaseResponse(message="deleted", status=200)
+
     

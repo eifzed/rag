@@ -1,12 +1,16 @@
 import os
 import json
 import PyPDF2
-from io import BytesIO
+from io import BytesIO, StringIO
 import openai
 from dotenv import load_dotenv
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
+from fastapi import UploadFile
+import fitz 
+import pandas as pd
+
 
 
 load_dotenv()
@@ -19,6 +23,39 @@ embeddings = OpenAIEmbeddings()
 client = openai.OpenAI()
 
 class DocumentProcessor:
+
+    @staticmethod
+    def extract_text_from_file(contents:bytes, mime_type: str):
+        """
+        Reads text from an uploaded file (FastAPI UploadFile), detecting type via MIME type.
+
+        Args:
+            contents (bytes): The uploaded file content.
+            mime_type: file type
+            
+        Returns:
+            str: Extracted text from the file.
+        """
+        
+        text = ""
+
+        if mime_type == "application/pdf":
+            with fitz.open(stream=BytesIO(contents), filetype="pdf") as pdf:
+                for page in pdf:
+                    text += page.get_text("text") + "\n"  # Extract text from each page
+
+        elif mime_type in ["text/csv", "application/vnd.ms-excel"]:
+            df = pd.read_csv(StringIO(contents.decode('utf-8')))
+            text = df.to_csv(index=False, sep="\t")  # Convert DataFrame to text
+
+        elif mime_type in ["text/markdown", "text/plain"]:
+            text = contents.decode('utf-8')  # Read markdown or plain text
+
+        else:
+            raise ValueError(f"Unsupported MIME type: {mime_type}")
+
+        return text
+
     @staticmethod
     def extract_text_from_pdf(file_data):
         """Extracts text from a PDF file (given bytes)."""
