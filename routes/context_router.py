@@ -44,18 +44,18 @@ async def create_context(
 
 
 @router.get("/contexts", response_model=List[ContextResponse])
-def get_contexts(request: Request, name: str, db: Session = Depends(get_db)):
+def get_contexts(request: Request, name: str = None, db: Session = Depends(get_db)):
     """
     Get list of all contexts by user
     """
     user_data = request.state.user
 
     q = db.query(Context)
-    if name != "":
-        q = q.filter(Context.owner_id==user_data.get("id"), Context.name.ilike(f'%{name}%'))
-    else:
+    if not name:
         q = q.filter(Context.owner_id==user_data.get("id"))
-
+    else:
+        q = q.filter(Context.owner_id==user_data.get("id"), Context.name.ilike(f'%{name}%'))
+        
     contexts = q.all()
 
     return contexts
