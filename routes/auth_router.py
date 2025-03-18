@@ -28,7 +28,7 @@ async def signup(user: UserCreateRequest, db: Session = Depends(get_db)):
     
     # Create access token
     access_token = AuthService.create_access_token(
-        data={"email": user.email, "id": user.id}, expires_delta=AuthService.get_token_expire_minutes()
+        data={"email": user.email, "id": user.id, "avatar_url": user.avatar_url}, expires_delta=AuthService.get_token_expire_minutes()
     )
     
     return {
@@ -49,7 +49,7 @@ async def login(user: LoginRequest, db: Session = Depends(get_db)):
         )
     
     access_token = AuthService.create_access_token(
-        data={"email": user.email, "id": user.id}, expires_delta=AuthService.get_token_expire_minutes()
+        data={"email": user.email, "id": user.id, "avatar_url": user.avatar_url}, expires_delta=AuthService.get_token_expire_minutes()
     )
     
     return {

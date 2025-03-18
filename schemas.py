@@ -54,6 +54,7 @@ class BaseResponse(BaseModel):
 
 class UserBase(BaseModel):
     email: EmailStr
+    avatar_url: str
 
     model_config = ConfigDict(from_attributes=True)
 
