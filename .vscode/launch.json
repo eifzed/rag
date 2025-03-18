@@ -5,10 +5,10 @@
             "name": "Python: FastAPI",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/frontend/main.py",
+            "program": "${workspaceFolder}/backend/main.py",
             "justMyCode": true,
             "env": {
-                "PYTHONPATH": "${workspaceFolder}"
+                "PYTHONPATH": "${workspaceFolder}/backend"
             }
         }
     ]

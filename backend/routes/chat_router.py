@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body, Request
 from sqlalchemy.orm import Session
 
 from utils.database import get_db
-from models.models import Context
+from models.models import Context, Document
 from schemas import ChatRequest, ChatResponse
 from services.chat_service import ChatService
 
@@ -10,6 +10,7 @@ router = APIRouter()
 
 @router.post("/chat", response_model=ChatResponse)
 def chat_with_context(
+    request: Request,
     chat_request: ChatRequest = Body(...),
     db: Session = Depends(get_db)
 ):
@@ -17,7 +18,11 @@ def chat_with_context(
     Chat with the assistant based on a specific context
     """
     # Check if context exists
-    context = db.query(Context).filter(Context.id == chat_request.context_id).first()
+    context = db.query(Context).filter(Context.id == chat_request.context_id, Context.owner_id == request.state.user.get("id")).first()
+    if not context:
+        raise HTTPException(status_code=404, detail="Context not found")
+    
+    context = db.query(Document).filter(Context.id == chat_request.context_id, Context.owner_id == request.state.user.get("id")).first()
     if not context:
         raise HTTPException(status_code=404, detail="Context not found")
     
@@ -48,3 +53,4 @@ def chat_with_context(
         response=response_data["response"],
         sources=response_data["sources"]
     )
+

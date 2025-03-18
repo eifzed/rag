@@ -8,23 +8,29 @@ from contextlib import asynccontextmanager
 from routes.context_router import router as context_router
 from routes.document_router import router as document_router
 from routes.chat_router import router as chat_router
+from routes.auth_router import router as auth_router
 from utils.database import create_tables
+from services.jwt_service import JWTAuthMiddleware
 
 app = FastAPI(title="RAG LLM System")
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Or specific origins like ["http://localhost:3000"]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Add JWT middleware separately
+app.add_middleware(JWTAuthMiddleware)
+
 # Include routers
 app.include_router(context_router, prefix="/api", tags=["contexts"])
 app.include_router(document_router, prefix="/api", tags=["documents"])
 app.include_router(chat_router, prefix="/api", tags=["chat"])
+app.include_router(auth_router, prefix="/api", tags=["auth"])
 
 # @app.on_event("startup")
 # async def startup_event():

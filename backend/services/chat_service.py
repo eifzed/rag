@@ -4,7 +4,10 @@ import numpy as np
 import openai
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
-from models.models import Context, DocumentChunk
+from models.models import Context, DocumentChunk, Document
+from typing import List
+from sqlalchemy import select
+
 
 load_dotenv()
 
@@ -31,11 +34,13 @@ class ChatService:
     @staticmethod
     def retrieve_relevant_chunks(db: Session, context_id: str, query_embedding, top_k=5):
         """Retrieve most relevant chunks for a given context and query"""
-        chunks = db.query(DocumentChunk).join(
-            DocumentChunk.document
-        ).filter(
-            Context.id == context_id
-        ).all()
+        stmt = (
+            select(DocumentChunk)
+            .join(Document, Document.id == DocumentChunk.document_id)
+            .where(Document.context_id == context_id)
+        )
+
+        chunks = db.scalars(stmt).all()
         
         if not chunks:
             return []

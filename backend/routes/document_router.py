@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Path
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Path, Request
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -15,6 +15,7 @@ router = APIRouter()
 
 @router.post("/contexts/{context_id}/documents", response_model=List[DocumentResponse])
 async def add_document(
+    request: Request,
     context_id: str = Path(...),
     files: List[UploadFile] = File(None),
     db: Session = Depends(get_db)
@@ -22,7 +23,7 @@ async def add_document(
     """
     Add new file to existing context
     """
-    context = db.query(Context).filter(Context.id == context_id).first()
+    context = db.query(Context).filter(Context.id == context_id, Context.owner_id == request.state.user.get("id")).first()
     if not context:
         raise HTTPException(status_code=404, detail="Context not found")
     
@@ -35,6 +36,7 @@ async def add_document(
 
 @router.get("/contexts/{context_id}/documents", response_model=List[DocumentResponse])
 def get_documents_by_context(
+    request: Request,
     context_id: str = Path(...),
     db: Session = Depends(get_db)
 ):
@@ -42,7 +44,7 @@ def get_documents_by_context(
     Get list of documents for a specific context
     """
     # Check if context exists
-    context = db.query(Context).filter(Context.id == context_id).first()
+    context = db.query(Context).filter(Context.id == context_id, Context.owner_id == request.state.user.get("id")).first()
     if not context:
         raise HTTPException(status_code=404, detail="Context not found")
     
@@ -51,6 +53,7 @@ def get_documents_by_context(
 
 @router.delete("/contexts/{context_id}/documents/{document_id}")
 def delete_document(
+    request: Request,
     context_id: str = Path(...),
     document_id: str = Path(...),
     db: Session = Depends(get_db)
@@ -58,7 +61,7 @@ def delete_document(
     """
     Delete a document and its chunks
     """
-    context = db.query(Document).filter(Document.id == document_id).first()
+    context = db.query(Document).filter(Document.id == document_id, Context.owner_id == request.state.user.get("id")).first()
     if not context:
         raise HTTPException(status_code=404, detail="Context not found")
     
