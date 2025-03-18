@@ -28,7 +28,7 @@ async def signup(user: UserCreateRequest, db: Session = Depends(get_db)):
     
     # Create access token
     access_token = AuthService.create_access_token(
-        data={"sub": user.email}, expires_delta=AuthService.get_token_expire_minutes()
+        data={"email": user.email, "id": user.id}, expires_delta=AuthService.get_token_expire_minutes()
     )
     
     return {
