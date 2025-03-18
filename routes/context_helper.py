@@ -9,8 +9,6 @@ async def insert_context_document(context_id:str, files:List[UploadFile], db:Ses
     try:
             documents = []
             for file in files:
-                # if not file.content_type:
-                #     file.content_type = "application/pdf"
                 file_content = await file.read()
                 
                 # Save document to database

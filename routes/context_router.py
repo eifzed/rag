@@ -50,7 +50,13 @@ def get_contexts(request: Request, name: str, db: Session = Depends(get_db)):
     """
     user_data = request.state.user
 
-    contexts = db.query(Context).filter(Context.owner_id==user_data.get("id"), Context.name.ilike(f'%{name}%')).all()
+    q = db.query(Context)
+    if name != "":
+        q = q.filter(Context.owner_id==user_data.get("id"), Context.name.ilike(f'%{name}%'))
+    else:
+        q = q.filter(Context.owner_id==user_data.get("id"))
+
+    contexts = q.all()
 
     return contexts
 
