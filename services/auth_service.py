@@ -57,7 +57,7 @@ class AuthService:
     @staticmethod
     def create_user(db: Session, user: UserCreateRequest):
         hashed_password = AuthService.get_password_hash(user.password)
-        db_user = User(email=user.email, hashed_password=hashed_password)
+        db_user = User(email=user.email, hashed_password=hashed_password, avatar_url=user.avatar_url)
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
