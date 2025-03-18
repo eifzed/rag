@@ -2,6 +2,8 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Larg
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.dialects.postgresql import UUID
+
 import uuid
 
 Base = declarative_base()
@@ -9,7 +11,7 @@ Base = declarative_base()
 class Context(Base):
     __tablename__ = "contexts"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
     name = Column(String, nullable=False, unique=True)
     description = Column(Text, nullable=True)
     owner_id = Column(Integer, nullable=False)
@@ -21,8 +23,8 @@ class Context(Base):
 class Document(Base):
     __tablename__ = "documents"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    context_id = Column(String, ForeignKey("contexts.id"), nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, nullable=False)
+    context_id = Column(UUID(as_uuid=True), ForeignKey("contexts.id", ondelete="CASCADE"), nullable=False)
     filename = Column(String, nullable=False)
     content_type = Column(String, nullable=False)
     file_data = Column(LargeBinary, nullable=False)
@@ -36,7 +38,7 @@ class DocumentChunk(Base):
     __tablename__ = "document_chunks"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    document_id = Column(String, ForeignKey("documents.id"), nullable=False)
+    document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id", ondelete="CASCADE"), nullable=False)
     chunk_index = Column(Integer, nullable=False)
     content = Column(Text, nullable=False)
     embedding = Column(Text, nullable=False)  # Store as JSON string

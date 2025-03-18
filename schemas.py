@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+import uuid
 
 class ContextBase(BaseModel):
     name: str
@@ -19,8 +20,8 @@ class DocumentCreate(DocumentBase):
     pass
 
 class DocumentResponse(DocumentBase):
-    id: str
-    context_id: str
+    id: uuid.UUID
+    context_id: uuid.UUID
     created_at: datetime
     updated_at: Optional[datetime] = None
 
@@ -38,7 +39,7 @@ class ChatResponse(BaseModel):
 
 
 class ContextResponse(ContextBase):
-    id: str
+    id: uuid.UUID
     created_at: datetime
     updated_at: Optional[datetime] = None
     files: Optional[List[DocumentResponse]] = None
