@@ -10,6 +10,7 @@ from langchain_chroma import Chroma
 from fastapi import UploadFile
 import fitz 
 import pandas as pd
+import magic
 
 
 
@@ -21,6 +22,7 @@ CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", 200))
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-ada-002")
 embeddings = OpenAIEmbeddings()
 client = openai.OpenAI()
+mime = magic.Magic(mime=True)
 
 class DocumentProcessor:
 
@@ -38,6 +40,8 @@ class DocumentProcessor:
         """
         
         text = ""
+
+        mime_type = mime.from_buffer(contents)
 
         if mime_type == "application/pdf":
             with fitz.open(stream=BytesIO(contents), filetype="pdf") as pdf:

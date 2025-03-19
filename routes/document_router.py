@@ -8,6 +8,8 @@ from schemas import DocumentResponse
 from utils.document_processor import DocumentProcessor
 from routes.context_helper import insert_context_document
 from sqlalchemy import delete
+from fastapi.responses import StreamingResponse
+import io
 
 
 
@@ -71,3 +73,26 @@ def delete_document(
     db.commit()
     
     return {"message": "Document deleted successfully"}
+
+@router.get("/download/{document_id}")
+def delete_document(
+    request: Request,
+    document_id: str = Path(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Download a document
+    """
+    user_id = request.state.user.get("id")
+    context = db.query(Context).filter(Context.owner_id == user_id).first()
+    if not context:
+        raise HTTPException(status_code=404, detail="Context not found")
+    
+    document = db.query(Document).filter(Document.id == document_id, Document.context_id == context.id).first()
+    if not document:
+        raise HTTPException(status_code=404, detail="Context not found")
+    
+
+    response = StreamingResponse(io.BytesIO(document.file_data), media_type=document.content_type, headers={"Content-Disposition": f'attachment; filename="{document.filename}"'})
+    response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
+    return response
