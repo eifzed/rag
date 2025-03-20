@@ -7,4 +7,4 @@ cmds = [
 ]
 
 [start]
-cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+cmd = "MAGIC_LIBRARY=$(nix eval --raw nixpkgs#file)/lib/libmagic.so uvicorn main:app --host 0.0.0.0 --port $PORT"
