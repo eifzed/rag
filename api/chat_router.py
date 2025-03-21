@@ -16,6 +16,8 @@ def chat_with_context(
     """
     Chat with the assistant based on a specific context
     """
+    if True:
+        raise ValueError("This is a test error")
     return ChatService.chat_with_context(db, chat_request, request.state.user.get("id"))
 
    

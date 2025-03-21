@@ -11,21 +11,23 @@ from api.chat_router import router as chat_router
 from api.auth_router import router as auth_router
 from utils.database import create_tables
 from middleware.auth_middleware import AuthMiddleware
+from middleware.log_middleware import LoggingMiddleware
 
 app = FastAPI(title="RAG LLM System")
 
+app.add_middleware(LoggingMiddleware)
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Or specific origins like ["http://localhost:3000"]
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["Content-Disposition"]
 )
 
-# Add JWT middleware separately
 app.add_middleware(AuthMiddleware)
+
 
 # Include routers
 app.include_router(context_router, prefix="/api", tags=["contexts"])
