@@ -35,10 +35,6 @@ app.include_router(document_router, prefix="/api", tags=["documents"])
 app.include_router(chat_router, prefix="/api", tags=["chat"])
 app.include_router(auth_router, prefix="/api", tags=["auth"])
 
-# @app.on_event("startup")
-# async def startup_event():
-#     create_tables()
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_tables()  # Run on startup

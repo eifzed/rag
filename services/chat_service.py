@@ -21,6 +21,7 @@ LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-ada-002")
 client = openai.OpenAI()
 
+
 class ChatService:
     @staticmethod
     def get_embedding(text):
@@ -40,21 +41,18 @@ class ChatService:
     def retrieve_relevant_chunks(db: Session, context_id: str, query_embedding, top_k=5):
         """Retrieve most relevant chunks for a given context and query"""
 
-        chunks = ChatRepository.get_document_chunk_by_context_id(db, context_id)
-        
-        if not chunks:
-            return []
+        chunks = ChatRepository.get_relevant_chunk_by_context_and_query(db, context_id, top_k)
         
         # Calculate similarity scores
-        chunk_scores = []
-        for chunk in chunks:
-            chunk_embedding = json.loads(chunk.embedding)
-            similarity = ChatService.cosine_similarity(query_embedding, chunk_embedding)
-            chunk_scores.append((chunk, similarity))
+        # chunk_scores = []
+        # for chunk in chunks:
+        #     chunk_embedding = json.loads(chunk.embedding)
+        #     similarity = ChatService.cosine_similarity(query_embedding, chunk_embedding)
+        #     chunk_scores.append((chunk, similarity))
         
-        # Sort by similarity and get top_k
-        chunk_scores.sort(key=lambda x: x[1], reverse=True)
-        return chunk_scores[:top_k]
+        # # Sort by similarity and get top_k
+        # chunk_scores.sort(key=lambda x: x[1], reverse=True)
+        return chunks
 
     @staticmethod
     def generate_response(query, context_chunks, history=None):
@@ -63,10 +61,25 @@ class ChatService:
             history = []
         
         # Prepare context from chunks
-        context_text = "\n\n".join([chunk.content for chunk, _ in context_chunks])
+        context_text = "\n\n".join([f"Document {i+1}: {doc.content}" for i, doc in enumerate(context_chunks)])
         
         messages = [
-            {"role": "system", "content": f"You are a helpful assistant. Use the following context to answer the user's question. If you don't know the answer based on the context, say so.\n\nContext: {context_text}"}
+        {"role": "system", 
+         "content": f"""
+            You are a helpful assistant that answers questions **ONLY** using the given context. 
+            If the answer is not in the context, reply: "I don't know based on the provided context."
+
+            Examples:
+            User: What is the capital of France?  
+            Context: (contains no relevant info)  
+            Assistant: I don't know based on the provided context.
+
+            User: What is the best sorting algorithm?  
+            Context: (contains details about Python syntax but nothing on sorting)  
+            Assistant: I don't know based on the provided context.
+
+            Context: {context_text}
+        """}        
         ]
         
         # Add history
@@ -82,9 +95,12 @@ class ChatService:
             temperature=0.7,
             max_tokens=1000
         )
-        
-        # Get sources
-        sources = [f"{chunk.document.filename} (Chunk {chunk.chunk_index})" for chunk, _ in context_chunks]
+
+        sources = []
+        for chunk in context_chunks:
+            source = f"{chunk.filename} - page {chunk.source_page}"
+            if source not in sources:
+                sources.append(source)
         
         return {
             "response": response.choices[0].message.content,
@@ -102,11 +118,12 @@ class ChatService:
         
         query_embedding = ChatService.get_embedding(chat_request.message)
 
-        relevant_chunks = ChatService.retrieve_relevant_chunks(
-            db=db, 
-            context_id=chat_request.context_id, 
-            query_embedding=query_embedding
-        )
+        doc_ids = []
+
+        for doc in documents:
+            doc_ids.append(doc.id)
+
+        relevant_chunks = ChatRepository.get_relevant_chunk_by_context_and_query(db, doc_ids, query_embedding)
 
         if not relevant_chunks:
             return ChatResponse(

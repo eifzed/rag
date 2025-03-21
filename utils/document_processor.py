@@ -39,21 +39,21 @@ class DocumentProcessor:
             str: Extracted text from the file.
         """
         
-        text = ""
+        text = {}
 
         mime_type = mime.from_buffer(contents)
 
         if mime_type == "application/pdf":
             with fitz.open(stream=BytesIO(contents), filetype="pdf") as pdf:
-                for page in pdf:
-                    text += page.get_text("text") + "\n"  # Extract text from each page
+                for i, page in enumerate(pdf):
+                    text[i+1] = page.get_text("text") + "\n"  # Extract text from each page
 
         elif mime_type in ["text/csv", "application/vnd.ms-excel"]:
             df = pd.read_csv(StringIO(contents.decode('utf-8')))
-            text = df.to_csv(index=False, sep="\t")  # Convert DataFrame to text
+            text[1] = df.to_csv(index=False, sep="\t")  # Convert DataFrame to text
 
         elif mime_type in ["text/markdown", "text/plain"]:
-            text = contents.decode('utf-8')  # Read markdown or plain text
+            text[1] = contents.decode('utf-8')  # Read markdown or plain text
 
         else:
             raise ValueError(f"Unsupported MIME type: {mime_type}")
@@ -84,6 +84,34 @@ class DocumentProcessor:
         )
         chunks = text_splitter.split_text(text)
         return chunks
+    
+    @staticmethod
+    def chunk_text_with_page_tracking(pages_dict):
+        """
+        Split text into chunks while tracking the source page
+        
+        Args:
+            pages_dict: Dictionary mapping page numbers to page content {page_num: text}
+        
+        Returns:
+            List of tuples: [(chunk_text, page_num), ...]
+        """
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=CHUNK_SIZE,
+            chunk_overlap=CHUNK_OVERLAP,
+            length_function=len,
+        )
+        
+        chunks_with_source = []
+        
+        for page_num, page_text in pages_dict.items():
+            page_chunks = text_splitter.split_text(page_text)
+            
+            # Associate each chunk with its source page
+            for chunk in page_chunks:
+                chunks_with_source.append((page_num, chunk))
+        
+        return chunks_with_source
 
     @staticmethod
     def get_embedding(text):
@@ -92,7 +120,7 @@ class DocumentProcessor:
             input=text,
             model=EMBEDDING_MODEL
         )
-        return json.dumps(response.data[0].embedding)
+        return response.data[0].embedding
 
     @staticmethod
     def get_vectorspace(textChunks):

@@ -57,17 +57,19 @@ class DocumentService:
                 
                 
                 # Process document
-                text = DocumentProcessor.extract_text_from_file(file_content, file.content_type)
-                chunks = DocumentProcessor.chunk_text(text)
+                page_map = DocumentProcessor.extract_text_from_file(file_content, file.content_type)
+                chunks = DocumentProcessor.chunk_text_with_page_tracking(page_map)
                 
                 # Save chunks with embeddings
                 for i, chunk_text in enumerate(chunks):
-                    embedding = DocumentProcessor.get_embedding(chunk_text)
+                    embedding = DocumentProcessor.get_embedding(chunk_text[1])
                     chunk = DocumentChunk(
                         document_id=document.id,
                         chunk_index=i,
                         content=chunk_text,
-                        embedding=embedding
+                        embedding=embedding,
+                        source_page = chunk_text[0],
+                        filename=file.filename
                     )
                     DocumentChunkRepository.insert(db, chunk)
                 
