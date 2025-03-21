@@ -5,12 +5,12 @@ from contextlib import asynccontextmanager
 
 
 # Fix the imports to use the correct file paths
-from routes.context_router import router as context_router
-from routes.document_router import router as document_router
-from routes.chat_router import router as chat_router
-from routes.auth_router import router as auth_router
+from api.context_router import router as context_router
+from api.document_router import router as document_router
+from api.chat_router import router as chat_router
+from api.auth_router import router as auth_router
 from utils.database import create_tables
-from services.jwt_service import JWTAuthMiddleware
+from middleware.auth_middleware import AuthMiddleware
 
 app = FastAPI(title="RAG LLM System")
 
@@ -25,7 +25,7 @@ app.add_middleware(
 )
 
 # Add JWT middleware separately
-app.add_middleware(JWTAuthMiddleware)
+app.add_middleware(AuthMiddleware)
 
 # Include routers
 app.include_router(context_router, prefix="/api", tags=["contexts"])
