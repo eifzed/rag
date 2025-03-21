@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["python312", "python312Packages.pip", "file"]  # "file" provides libmagic
+nixPkgs = ["python312", "python312Packages.pip", "file"]
 
 [phases.build]
 cmds = [
