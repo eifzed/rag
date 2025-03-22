@@ -1861,3 +1861,196 @@ TypeError: delete() missing 1 required positional argument: 'owner_id'
 2025-03-22 10:19:18,634 - INFO - 1 change detected
 2025-03-22 10:19:44,703 - INFO - 1 change detected
 2025-03-22 10:20:37,093 - INFO - 1 change detected
+2025-03-22 10:23:21,319 - INFO - select pg_catalog.version()
+2025-03-22 10:23:21,332 - INFO - [raw sql] {}
+2025-03-22 10:23:21,377 - INFO - select current_schema()
+2025-03-22 10:23:21,378 - INFO - [raw sql] {}
+2025-03-22 10:23:21,418 - INFO - show standard_conforming_strings
+2025-03-22 10:23:21,419 - INFO - [raw sql] {}
+2025-03-22 10:23:21,459 - INFO - BEGIN (implicit)
+2025-03-22 10:23:21,472 - INFO - SELECT contexts.id AS contexts_id, contexts.name AS contexts_name, contexts.description AS contexts_description, contexts.owner_id AS contexts_owner_id, contexts.created_at AS contexts_created_at, contexts.updated_at AS contexts_updated_at 
+FROM contexts 
+WHERE contexts.owner_id = %(owner_id_1)s
+2025-03-22 10:23:21,472 - INFO - [generated in 0.00090s] {'owner_id_1': 15}
+2025-03-22 10:23:21,517 - INFO - ROLLBACK
+2025-03-22 10:23:30,514 - INFO - BEGIN (implicit)
+2025-03-22 10:23:30,516 - INFO - SELECT contexts.id AS contexts_id, contexts.name AS contexts_name, contexts.description AS contexts_description, contexts.owner_id AS contexts_owner_id, contexts.created_at AS contexts_created_at, contexts.updated_at AS contexts_updated_at 
+FROM contexts 
+WHERE contexts.id = %(id_1)s::UUID AND contexts.owner_id = %(owner_id_1)s 
+ LIMIT %(param_1)s
+2025-03-22 10:23:30,516 - INFO - [generated in 0.00051s] {'id_1': '187ed7a8-7106-4eba-9351-220761662127', 'owner_id_1': 15, 'param_1': 1}
+2025-03-22 10:23:30,558 - INFO - SELECT documents.id AS documents_id, documents.context_id AS documents_context_id, documents.filename AS documents_filename, documents.content_type AS documents_content_type, documents.file_data AS documents_file_data, documents.created_at AS documents_created_at, documents.updated_at AS documents_updated_at 
+FROM documents 
+WHERE documents.context_id = %(context_id_1)s::UUID
+2025-03-22 10:23:30,558 - INFO - [generated in 0.00053s] {'context_id_1': UUID('187ed7a8-7106-4eba-9351-220761662127')}
+2025-03-22 10:23:30,637 - INFO - DELETE FROM document_chunks WHERE document_chunks.document_id IN (%(document_id_1_1)s::UUID, %(document_id_1_2)s::UUID, %(document_id_1_3)s::UUID, %(document_id_1_4)s::UUID, %(document_id_1_5)s::UUID)
+2025-03-22 10:23:30,637 - INFO - [generated in 0.00064s] {'document_id_1_1': UUID('f8ecd774-02a6-4b70-b991-574a382c49bc'), 'document_id_1_2': UUID('124ad577-60d7-470e-9cdd-4271bd88cbb3'), 'document_id_1_3': UUID('74b122d2-9ec8-4fa9-a802-5831d10cd70d'), 'document_id_1_4': UUID('0195b655-aaf3-7206-a5e1-8751ebe4217e'), 'document_id_1_5': UUID('0195b837-5600-76a2-908a-78f48d335b22')}
+2025-03-22 10:23:30,689 - INFO - DELETE FROM documents WHERE documents.id IN (%(id_1_1)s::UUID, %(id_1_2)s::UUID, %(id_1_3)s::UUID, %(id_1_4)s::UUID, %(id_1_5)s::UUID)
+2025-03-22 10:23:30,689 - INFO - [generated in 0.00056s] {'id_1_1': UUID('f8ecd774-02a6-4b70-b991-574a382c49bc'), 'id_1_2': UUID('124ad577-60d7-470e-9cdd-4271bd88cbb3'), 'id_1_3': UUID('74b122d2-9ec8-4fa9-a802-5831d10cd70d'), 'id_1_4': UUID('0195b655-aaf3-7206-a5e1-8751ebe4217e'), 'id_1_5': UUID('0195b837-5600-76a2-908a-78f48d335b22')}
+2025-03-22 10:23:30,713 - INFO - DELETE FROM contexts WHERE contexts.id = %(id_1)s::UUID
+2025-03-22 10:23:30,713 - INFO - [generated in 0.00047s] {'id_1': UUID('187ed7a8-7106-4eba-9351-220761662127')}
+2025-03-22 10:23:30,732 - INFO - ROLLBACK
+2025-03-22 10:23:30,750 - ERROR - Unhandled exception occurred
+Traceback (most recent call last):
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/anyio/streams/memory.py", line 98, in receive
+    return self.receive_nowait()
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/anyio/streams/memory.py", line 93, in receive_nowait
+    raise WouldBlock
+anyio.WouldBlock
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/middleware/base.py", line 147, in call_next
+    message = await recv_stream.receive()
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/anyio/streams/memory.py", line 118, in receive
+    raise EndOfStream
+anyio.EndOfStream
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/bytedance/dev/rag/middleware/log_middleware.py", line 24, in dispatch
+    response = await call_next(request)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/middleware/base.py", line 153, in call_next
+    raise app_exc
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/middleware/base.py", line 140, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/routing.py", line 73, in app
+    response = await f(request)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/fastapi/routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/fastapi/routing.py", line 212, in run_endpoint_function
+    return await dependant.call(**values)
+  File "/Users/bytedance/dev/rag/api/context_router.py", line 52, in delete_context
+    return ContextService.delete(db, context_id, get_user_id_from_req(request))
+  File "/Users/bytedance/dev/rag/services/context_service.py", line 63, in delete
+    ContextRepository.delete_by_id(db, context.id)
+  File "/Users/bytedance/dev/rag/repository/context_repository.py", line 45, in delete_by_id
+    db.execute()
+TypeError: execute() missing 1 required positional argument: 'statement'
+2025-03-22 10:23:51,727 - INFO - BEGIN (implicit)
+2025-03-22 10:23:51,728 - INFO - SELECT contexts.id AS contexts_id, contexts.name AS contexts_name, contexts.description AS contexts_description, contexts.owner_id AS contexts_owner_id, contexts.created_at AS contexts_created_at, contexts.updated_at AS contexts_updated_at 
+FROM contexts 
+WHERE contexts.id = %(id_1)s::UUID AND contexts.owner_id = %(owner_id_1)s 
+ LIMIT %(param_1)s
+2025-03-22 10:23:51,729 - INFO - [cached since 21.21s ago] {'id_1': '187ed7a8-7106-4eba-9351-220761662127', 'owner_id_1': 15, 'param_1': 1}
+2025-03-22 10:23:54,032 - INFO - SELECT documents.id AS documents_id, documents.context_id AS documents_context_id, documents.filename AS documents_filename, documents.content_type AS documents_content_type, documents.file_data AS documents_file_data, documents.created_at AS documents_created_at, documents.updated_at AS documents_updated_at 
+FROM documents 
+WHERE documents.context_id = %(context_id_1)s::UUID
+2025-03-22 10:23:54,034 - INFO - [cached since 23.48s ago] {'context_id_1': UUID('187ed7a8-7106-4eba-9351-220761662127')}
+2025-03-22 10:24:03,050 - INFO - DELETE FROM document_chunks WHERE document_chunks.document_id IN (%(document_id_1_1)s::UUID, %(document_id_1_2)s::UUID, %(document_id_1_3)s::UUID, %(document_id_1_4)s::UUID, %(document_id_1_5)s::UUID)
+2025-03-22 10:24:03,051 - INFO - [cached since 32.41s ago] {'document_id_1_1': UUID('f8ecd774-02a6-4b70-b991-574a382c49bc'), 'document_id_1_2': UUID('124ad577-60d7-470e-9cdd-4271bd88cbb3'), 'document_id_1_3': UUID('74b122d2-9ec8-4fa9-a802-5831d10cd70d'), 'document_id_1_4': UUID('0195b655-aaf3-7206-a5e1-8751ebe4217e'), 'document_id_1_5': UUID('0195b837-5600-76a2-908a-78f48d335b22')}
+2025-03-22 10:24:03,390 - INFO - DELETE FROM documents WHERE documents.id IN (%(id_1_1)s::UUID, %(id_1_2)s::UUID, %(id_1_3)s::UUID, %(id_1_4)s::UUID, %(id_1_5)s::UUID)
+2025-03-22 10:24:03,395 - INFO - [cached since 32.71s ago] {'id_1_1': UUID('f8ecd774-02a6-4b70-b991-574a382c49bc'), 'id_1_2': UUID('124ad577-60d7-470e-9cdd-4271bd88cbb3'), 'id_1_3': UUID('74b122d2-9ec8-4fa9-a802-5831d10cd70d'), 'id_1_4': UUID('0195b655-aaf3-7206-a5e1-8751ebe4217e'), 'id_1_5': UUID('0195b837-5600-76a2-908a-78f48d335b22')}
+2025-03-22 10:24:09,823 - INFO - DELETE FROM contexts WHERE contexts.id = %(id_1)s::UUID
+2025-03-22 10:24:09,825 - INFO - [cached since 39.11s ago] {'id_1': UUID('187ed7a8-7106-4eba-9351-220761662127')}
+2025-03-22 10:24:09,847 - INFO - ROLLBACK
+2025-03-22 10:24:34,161 - ERROR - Unhandled exception occurred
+Traceback (most recent call last):
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/anyio/streams/memory.py", line 98, in receive
+    return self.receive_nowait()
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/anyio/streams/memory.py", line 93, in receive_nowait
+    raise WouldBlock
+anyio.WouldBlock
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/middleware/base.py", line 147, in call_next
+    message = await recv_stream.receive()
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/anyio/streams/memory.py", line 118, in receive
+    raise EndOfStream
+anyio.EndOfStream
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/bytedance/dev/rag/middleware/log_middleware.py", line 24, in dispatch
+    response = await call_next(request)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/middleware/base.py", line 153, in call_next
+    raise app_exc
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/middleware/base.py", line 140, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/starlette/routing.py", line 73, in app
+    response = await f(request)
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/fastapi/routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+  File "/Users/bytedance/dev/rag/venv/lib/python3.9/site-packages/fastapi/routing.py", line 212, in run_endpoint_function
+    return await dependant.call(**values)
+  File "/Users/bytedance/dev/rag/api/context_router.py", line 52, in delete_context
+    return ContextService.delete(db, context_id, get_user_id_from_req(request))
+  File "/Users/bytedance/dev/rag/services/context_service.py", line 63, in delete
+    ContextRepository.delete_by_id(db, context.id)
+  File "/Users/bytedance/dev/rag/repository/context_repository.py", line 45, in delete_by_id
+    db.execute()
+TypeError: execute() missing 1 required positional argument: 'statement'
+2025-03-22 10:25:08,042 - INFO - 1 change detected
+2025-03-22 10:25:08,561 - INFO - 1 change detected
+2025-03-22 10:25:23,655 - INFO - select pg_catalog.version()
+2025-03-22 10:25:23,657 - INFO - [raw sql] {}
+2025-03-22 10:25:23,698 - INFO - select current_schema()
+2025-03-22 10:25:23,699 - INFO - [raw sql] {}
+2025-03-22 10:25:23,739 - INFO - show standard_conforming_strings
+2025-03-22 10:25:23,739 - INFO - [raw sql] {}
+2025-03-22 10:25:23,782 - INFO - BEGIN (implicit)
+2025-03-22 10:25:23,788 - INFO - SELECT contexts.id AS contexts_id, contexts.name AS contexts_name, contexts.description AS contexts_description, contexts.owner_id AS contexts_owner_id, contexts.created_at AS contexts_created_at, contexts.updated_at AS contexts_updated_at 
+FROM contexts 
+WHERE contexts.id = %(id_1)s::UUID AND contexts.owner_id = %(owner_id_1)s 
+ LIMIT %(param_1)s
+2025-03-22 10:25:23,789 - INFO - [generated in 0.00078s] {'id_1': '187ed7a8-7106-4eba-9351-220761662127', 'owner_id_1': 15, 'param_1': 1}
+2025-03-22 10:25:23,831 - INFO - SELECT documents.id AS documents_id, documents.context_id AS documents_context_id, documents.filename AS documents_filename, documents.content_type AS documents_content_type, documents.file_data AS documents_file_data, documents.created_at AS documents_created_at, documents.updated_at AS documents_updated_at 
+FROM documents 
+WHERE documents.context_id = %(context_id_1)s::UUID
+2025-03-22 10:25:23,832 - INFO - [generated in 0.00055s] {'context_id_1': UUID('187ed7a8-7106-4eba-9351-220761662127')}
+2025-03-22 10:25:23,919 - INFO - DELETE FROM document_chunks WHERE document_chunks.document_id IN (%(document_id_1_1)s::UUID, %(document_id_1_2)s::UUID, %(document_id_1_3)s::UUID, %(document_id_1_4)s::UUID, %(document_id_1_5)s::UUID)
+2025-03-22 10:25:23,919 - INFO - [generated in 0.00124s] {'document_id_1_1': UUID('f8ecd774-02a6-4b70-b991-574a382c49bc'), 'document_id_1_2': UUID('124ad577-60d7-470e-9cdd-4271bd88cbb3'), 'document_id_1_3': UUID('74b122d2-9ec8-4fa9-a802-5831d10cd70d'), 'document_id_1_4': UUID('0195b655-aaf3-7206-a5e1-8751ebe4217e'), 'document_id_1_5': UUID('0195b837-5600-76a2-908a-78f48d335b22')}
+2025-03-22 10:25:23,974 - INFO - DELETE FROM documents WHERE documents.id IN (%(id_1_1)s::UUID, %(id_1_2)s::UUID, %(id_1_3)s::UUID, %(id_1_4)s::UUID, %(id_1_5)s::UUID)
+2025-03-22 10:25:23,975 - INFO - [generated in 0.00156s] {'id_1_1': UUID('f8ecd774-02a6-4b70-b991-574a382c49bc'), 'id_1_2': UUID('124ad577-60d7-470e-9cdd-4271bd88cbb3'), 'id_1_3': UUID('74b122d2-9ec8-4fa9-a802-5831d10cd70d'), 'id_1_4': UUID('0195b655-aaf3-7206-a5e1-8751ebe4217e'), 'id_1_5': UUID('0195b837-5600-76a2-908a-78f48d335b22')}
+2025-03-22 10:25:24,001 - INFO - DELETE FROM contexts WHERE contexts.id = %(id_1)s::UUID
+2025-03-22 10:25:24,002 - INFO - [generated in 0.00125s] {'id_1': UUID('187ed7a8-7106-4eba-9351-220761662127')}
+2025-03-22 10:25:24,022 - INFO - COMMIT
+2025-03-22 10:25:24,065 - INFO - BEGIN (implicit)
+2025-03-22 10:25:24,068 - INFO - SELECT contexts.id AS contexts_id, contexts.name AS contexts_name, contexts.description AS contexts_description, contexts.owner_id AS contexts_owner_id, contexts.created_at AS contexts_created_at, contexts.updated_at AS contexts_updated_at 
+FROM contexts 
+WHERE contexts.owner_id = %(owner_id_1)s
+2025-03-22 10:25:24,068 - INFO - [generated in 0.00068s] {'owner_id_1': 15}
+2025-03-22 10:25:24,110 - INFO - ROLLBACK
+2025-03-22 10:25:42,126 - INFO - 1 change detected
+2025-03-22 10:25:42,638 - INFO - 1 change detected

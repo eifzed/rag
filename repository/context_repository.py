@@ -42,7 +42,6 @@ class ContextRepository:
     @staticmethod
     def delete_by_id(db:Session,  id):
         db.execute(delete(Context).where(Context.id == id))
-        db.execute()
 
 
     

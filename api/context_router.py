@@ -19,7 +19,7 @@ async def create_context(
     db: Session = Depends(get_db)
 ):
     """
-    Create a new context with optional files
+    Create a new context
     """
     return ContextService.create_context(db, context_req, get_user_id_from_req(request))
 
