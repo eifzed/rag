@@ -43,11 +43,10 @@ def get_context(request: Request, context_id: str, db: Session = Depends(get_db)
 
 @router.delete("/contexts/{context_id}", response_model=BaseResponse)
 async def delete_context(
+    request: Request,
     context_id: str,
     db:Session = Depends(get_db)):
     """
     Delete context, documents, and document_chunk by context id
     """
-    return ContextService.delete(db, context_id)
-
-    
+    return ContextService.delete(db, context_id, get_user_id_from_req(request))
