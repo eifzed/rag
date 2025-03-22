@@ -10,7 +10,7 @@ from langchain_chroma import Chroma
 from fastapi import UploadFile
 import fitz 
 import pandas as pd
-import magic
+import filetype
 
 
 
@@ -22,7 +22,6 @@ CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", 200))
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-ada-002")
 embeddings = OpenAIEmbeddings()
 client = openai.OpenAI()
-mime = magic.Magic(mime=True)
 
 class DocumentProcessor:
 
@@ -41,14 +40,12 @@ class DocumentProcessor:
         
         text = {}
 
-        mime_type = mime.from_buffer(contents)
-
         if mime_type == "application/pdf":
             with fitz.open(stream=BytesIO(contents), filetype="pdf") as pdf:
                 for i, page in enumerate(pdf):
                     text[i+1] = page.get_text("text") + "\n"  # Extract text from each page
 
-        elif mime_type in ["text/csv", "application/vnd.ms-excel"]:
+        elif mime_type in ["text/csv"]:
             df = pd.read_csv(StringIO(contents.decode('utf-8')))
             text[1] = df.to_csv(index=False, sep="\t")  # Convert DataFrame to text
 
