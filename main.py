@@ -9,6 +9,7 @@ from api.context_router import router as context_router
 from api.document_router import router as document_router
 from api.chat_router import router as chat_router
 from api.auth_router import router as auth_router
+from api.scrape_router import router as scrape_router
 from utils.database import create_tables
 from middleware.auth_middleware import AuthMiddleware
 from middleware.log_middleware import LoggingMiddleware
@@ -34,6 +35,7 @@ app.include_router(context_router, prefix="/api", tags=["contexts"])
 app.include_router(document_router, prefix="/api", tags=["documents"])
 app.include_router(chat_router, prefix="/api", tags=["chat"])
 app.include_router(auth_router, prefix="/api", tags=["auth"])
+app.include_router(scrape_router, prefix="/api", tags=["scrape"])
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
