@@ -3,11 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from utils.database import get_db
-from schemas.document_schema import DocumentResponse
-from sqlalchemy import delete
-import io
+from schemas.document_schema import DocumentResponse, DocumentText
 from services.context_service import ContextService
-from models.document_model import Document
 from utils.user import get_user_id_from_req
 
 from services.document_service import DocumentService
@@ -18,7 +15,7 @@ router = APIRouter()
 @router.post("/contexts/{context_id}/documents", response_model=List[DocumentResponse])
 async def update_context_file(
     request: Request,
-    context_id: str, 
+    context_id: str = Path(...), 
     files: List[UploadFile] = File(None),
     db:Session = Depends(get_db)):
     """
@@ -29,6 +26,23 @@ async def update_context_file(
         raise HTTPException(status_code=403, detail="Please provide the files to be uploaded")
     
     documents = await ContextService.upload_context_file(db, context_id, get_user_id_from_req(request), files)
+    return documents
+
+
+@router.post("/contexts/{context_id}/text", response_model=List[DocumentResponse])
+async def update_context_text(
+    request: Request,
+    context_id: str = Path(...), 
+    text_data: DocumentText = None,
+    db:Session = Depends(get_db)):
+    """
+    Add new file to existing context
+    """
+    
+    if not text_data.content or not text_data.filename:
+        raise HTTPException(status_code=403, detail="Please provide the name and content to be uploaded")
+    
+    documents = await ContextService.upload_context_text(db, context_id, get_user_id_from_req(request), text_data)
     return documents
 
 

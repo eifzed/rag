@@ -9,6 +9,7 @@ from services.document_service import DocumentService
 from repository.document_chunk_repository import DocumentChunkRepository
 from typing import List
 from schemas.base_schema import BaseResponse
+from schemas.document_schema import DocumentText
 
 
 
@@ -43,6 +44,15 @@ class ContextService:
             raise HTTPException(status_code=404, detail="Context not found")
         
         documents = await DocumentService.insert_context_document(db, context_id, files)
+        return documents
+    
+    @staticmethod
+    async def upload_context_text(db: Session, context_id:str, owner_id, document_text: DocumentText):
+        context = ContextRepository.get_by_id_and_owner(db, context_id, owner_id)
+        if not context:
+            raise HTTPException(status_code=404, detail="Context not found")
+        
+        documents = await DocumentService.insert_context_text(db, context_id, document_text)
         return documents
     
     def delete(db:Session, context_id, owner_id):

@@ -19,3 +19,6 @@ class DocumentResponse(DocumentBase):
 
     class Config:
         from_attributes = True
+
+class DocumentText(DocumentBase):
+    content: str

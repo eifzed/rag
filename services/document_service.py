@@ -11,6 +11,7 @@ from fastapi.responses import StreamingResponse
 import io
 from schemas.base_schema import BaseResponse
 from utils.uuid import uuidv7
+from schemas.document_schema import DocumentText
 
 
 
@@ -24,17 +25,21 @@ class DocumentService:
             raise HTTPException(status_code=404, detail="Context not found")
         document = DocumentRepository.get_by_id_and_context_id(db, document_id, context_id)
 
+        if document.content_type == "text/url-scrape":
+            document.content_type = "text/plain"
+            document.filename = document.filename+".txt"
+
         response = StreamingResponse(io.BytesIO(document.file_data), media_type=document.content_type, headers={"Content-Disposition": f'attachment; filename="{document.filename}"'})
         response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
-        return document
+        return response
     
     @staticmethod
     def delete_document(db:Session, document_id, context_id, owner_id):
         context = ContextRepository.get_by_id_and_owner(db, context_id, owner_id)
         if not context:
             raise HTTPException(status_code=404, detail="Context not found")
-        DocumentRepository.delete_by_ids(db, [document_id])
         DocumentChunkRepository.delete_by_document_ids(db, [document_id])
+        DocumentRepository.delete_by_ids(db, [document_id])
         db.commit()
         return BaseResponse(status=200, message="deleted")
 
@@ -77,6 +82,46 @@ class DocumentService:
                 db.refresh(document)
                 documents.append(document)
             return documents
+        except Exception as e:
+            print(e)
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @staticmethod
+    async def insert_context_text(db:Session, context_id:str, document_text: DocumentText)->List[Document]:
+        try:
+                
+            # Save document to database
+            document = Document(
+                id= uuidv7(),
+                context_id=context_id,
+                filename=document_text.filename,
+                content_type="text/url-scrape",
+                file_data=document_text.content.encode("utf-8")
+            )
+            DocumentRepository.insert(db, document)
+            
+            
+            # Process document
+            page_map = {1: document_text.content}
+            chunks = DocumentProcessor.chunk_text_with_page_tracking(page_map)
+            
+            # Save chunks with embeddings
+            for i, chunk_text in enumerate(chunks):
+                embedding = DocumentProcessor.get_embedding(chunk_text[1])
+                chunk = DocumentChunk(
+                    document_id=document.id,
+                    chunk_index=i,
+                    content=chunk_text,
+                    embedding=embedding,
+                    source_page = chunk_text[0],
+                    filename=document_text.filename
+                )
+                DocumentChunkRepository.insert(db, chunk)
+            
+            db.commit()
+            db.refresh(document)
+                
+            return [document]
         except Exception as e:
             print(e)
             raise HTTPException(status_code=500, detail=str(e))
