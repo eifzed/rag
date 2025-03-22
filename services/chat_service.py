@@ -19,6 +19,7 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-ada-002")
+DOCUCHAT_WEB_URL = os.getenv("DOCUCHAT_WEB_URL")
 client = openai.OpenAI()
 
 
@@ -114,7 +115,9 @@ class ChatService:
         
         documents = DocumentRepository.get_by_context_id(db, context_id=context.id)
         if not documents:
-            raise HTTPException(status_code=404, detail="You need to upload a doucment first before starting to chat")
+            return ChatResponse(
+                response=f"You have not added any documents to the context. Go to [this page]({DOCUCHAT_WEB_URL}/{context.id}) to add"
+            )
         
         query_embedding = ChatService.get_embedding(chat_request.message)
 
