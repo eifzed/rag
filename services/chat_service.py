@@ -116,7 +116,7 @@ class ChatService:
         documents = DocumentRepository.get_by_context_id(db, context_id=context.id)
         if not documents:
             return ChatResponse(
-                response=f"You have not added any documents to the context. Go to [this page]({DOCUCHAT_WEB_URL}/{context.id}) to add"
+                response=f"You have not added any documents to the context. Go to [this page]({DOCUCHAT_WEB_URL}/contexts/{context.id}) to add"
             )
         
         query_embedding = ChatService.get_embedding(chat_request.message)
