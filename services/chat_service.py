@@ -2,7 +2,6 @@ import os
 import json
 import numpy as np
 import openai
-from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from models.document_chunk_model import DocumentChunk
 from models.document_model import Document
@@ -13,8 +12,6 @@ from repository.context_repository import ContextRepository
 from repository.document_repository import DocumentRepository
 from fastapi import HTTPException
 
-
-load_dotenv()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4")

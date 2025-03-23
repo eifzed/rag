@@ -1,10 +1,11 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, LargeBinary, Boolean
+from sqlalchemy import Column, Enum, String, ForeignKey, DateTime, Text, LargeBinary, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from models.base import Base
+from models.enums import UploadStatus
 
 
 class Document(Base):
@@ -17,6 +18,7 @@ class Document(Base):
     file_data = Column(LargeBinary, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    upload_status = Column(Enum(UploadStatus), nullable=True)
 
     context = relationship("Context", back_populates="documents")
     chunks = relationship("DocumentChunk", back_populates="document", cascade="all, delete-orphan")

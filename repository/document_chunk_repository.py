@@ -12,3 +12,7 @@ class DocumentChunkRepository:
     @staticmethod
     def insert(db:Session, document_chunk: DocumentChunk):
         db.add(document_chunk)
+    
+    @staticmethod
+    def insert_bulk(db:Session, document_chunk: List[DocumentChunk]):
+        db.bulk_save_objects(document_chunk)

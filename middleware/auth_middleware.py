@@ -2,7 +2,6 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from jose import jwt, JWTError
 import time
-from dotenv import load_dotenv
 import os
 from fastapi.responses import JSONResponse
 
@@ -12,8 +11,6 @@ from fastapi.responses import JSONResponse
 PUBLIC_PATHS = ["/api/auth/login", "/api/auth/signup"]
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
-
-load_dotenv()
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):

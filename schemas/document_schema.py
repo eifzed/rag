@@ -1,12 +1,14 @@
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+from models.document_model import UploadStatus
 import uuid
 
 
 class DocumentBase(BaseModel):
     filename: str
     content_type: str
+    upload_status: UploadStatus
 
 class DocumentCreate(DocumentBase):
     pass

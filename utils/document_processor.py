@@ -3,7 +3,6 @@ import json
 import PyPDF2
 from io import BytesIO, StringIO
 import openai
-from dotenv import load_dotenv
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
@@ -12,9 +11,6 @@ import fitz
 import pandas as pd
 import filetype
 
-
-
-load_dotenv()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 1000))
@@ -49,7 +45,7 @@ class DocumentProcessor:
             df = pd.read_csv(StringIO(contents.decode('utf-8')))
             text[1] = df.to_csv(index=False, sep="\t")  # Convert DataFrame to text
 
-        elif mime_type in ["text/markdown", "text/plain"]:
+        elif mime_type in ["text/markdown", "text/plain", "text/url-scrape"]:
             text[1] = contents.decode('utf-8')  # Read markdown or plain text
 
         else:

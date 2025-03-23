@@ -12,6 +12,10 @@ class DocumentRepository:
         return db.query(Document).filter(Document.context_id == context_id).all()
     
     @staticmethod
+    def get_by_id(db:Session, id):
+        return db.query(Document).filter(Document.id == id).first()
+
+    @staticmethod
     def insert(db:Session, document: Document):
         db.add(document)
 
