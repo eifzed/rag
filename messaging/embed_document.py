@@ -29,7 +29,7 @@ def start_nsq_consumer(topic: str, channel: str, processor):
     reader = nsq.Reader(
         topic=topic,
         channel=channel,
-        lookupd_http_addresses=["http://nsqlookupd.railway.internal:4150"],
+        lookupd_http_addresses=["http://nsqlookupd.railway.internal:4161"],
         # nsqd_tcp_addresses=[f"http://nsqd.railway.internal:4150"],
         message_handler=lambda msg: handle_message(msg, processor),
         max_in_flight=2,
