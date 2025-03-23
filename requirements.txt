@@ -95,6 +95,7 @@ opentelemetry-util-http==0.52b0
 orjson==3.10.15
 overrides==7.7.0
 packaging==24.2
+pamqp==3.3.0
 pandas==2.2.3
 passlib==1.7.4
 pgvector==0.4.0
@@ -113,6 +114,7 @@ pydub==0.25.1
 Pygments==2.19.1
 PyJWT==2.10.1
 PyMuPDF==1.25.4
+pynsq==0.9.1
 pyparsing==3.2.1
 PyPDF2==3.0.1
 PyPika==0.48.9
@@ -144,6 +146,7 @@ tiktoken==0.9.0
 tokenizers==0.21.1
 tomli==2.2.1
 tomlkit==0.12.0
+tornado==6.4.2
 tqdm==4.67.1
 typer==0.15.2
 typing-inspect==0.9.0

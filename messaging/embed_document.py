@@ -1,7 +1,5 @@
 import os
 import json
-import aio_pika
-import asyncio
 import nsq
 import tornado.ioloop
 
