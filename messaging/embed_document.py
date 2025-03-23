@@ -29,8 +29,8 @@ def start_nsq_consumer(topic: str, channel: str, processor):
     reader = nsq.Reader(
         topic=topic,
         channel=channel,
-        lookupd_http_addresses=["https://nsqlookupd-production-8eb5.up.railway.app"],
-        # nsqd_tcp_addresses=[f"nsqd-production-99bc.up.railway.app:4151"],
+        # lookupd_http_addresses=["https://nsqlookupd-production-8eb5.up.railway.app"],
+        nsqd_tcp_addresses=[f"nsqd.railway.internal:4150"],
         message_handler=lambda msg: handle_message(msg, processor),
         max_in_flight=2,
         lookupd_poll_interval=15,  # Increase from default
