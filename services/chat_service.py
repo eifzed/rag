@@ -34,26 +34,9 @@ class ChatService:
         return response.data[0].embedding
 
     @staticmethod
-    def cosine_similarity(a, b):
-        """Calculate cosine similarity between two vectors"""
-        return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
-
-    @staticmethod
     def retrieve_relevant_chunks(db: Session, context_id: str, query_embedding, top_k=5):
         """Retrieve most relevant chunks for a given context and query"""
-
-        chunks = ChatRepository.get_relevant_chunk_by_context_and_query(db, context_id, top_k)
-        
-        # Calculate similarity scores
-        # chunk_scores = []
-        # for chunk in chunks:
-        #     chunk_embedding = json.loads(chunk.embedding)
-        #     similarity = ChatService.cosine_similarity(query_embedding, chunk_embedding)
-        #     chunk_scores.append((chunk, similarity))
-        
-        # # Sort by similarity and get top_k
-        # chunk_scores.sort(key=lambda x: x[1], reverse=True)
-        return chunks
+        return ChatRepository.get_relevant_chunk_by_context_and_query(db, context_id, top_k)
 
     @staticmethod
     def generate_response(query, context_chunks, history=None):
@@ -67,8 +50,8 @@ class ChatService:
         messages = [
         {"role": "system", 
          "content": f"""
-            You are a helpful assistant that answers questions **ONLY** using the given context. 
-            If the answer is not in the context, reply: "I don't know based on the provided context."
+            You are a helpful assistant that answers questions **ONLY** using the given context and message history. 
+            If the answer is not in the context or message history, reply: "I don't know based on the provided context."
 
             Examples:
             User: What is the capital of France?  
@@ -79,16 +62,20 @@ class ChatService:
             Context: (contains details about Python syntax but nothing on sorting)  
             Assistant: I don't know based on the provided context.
 
+            User: How many employment types are there?  
+            Context: (contains relevant info)  
+            Assistant: There are two types of employment: full-time and contract
+            User: can you expand on the first one?
+            Context: (contains relevant info about full-time eployement)
+            Assistant: (explain full-time employment based on context)
+
             Context: {context_text}
         """}        
         ]
         
-        # Add history
-        for msg in history:
-            messages.append(msg)
-        
-        # Add current query
-        messages.append({"role": "user", "content": query})
+        # Format chat history
+        formatted_query = ChatService.format_chat_for_vector_search(history, query)
+        messages.append({"role": "user", "content": formatted_query})
         
         response = client.chat.completions.create(
             model=LLM_MODEL,
@@ -97,16 +84,13 @@ class ChatService:
             max_tokens=1000
         )
 
-        sources = []
-        for chunk in context_chunks:
-            source = f"{chunk.filename} - page {chunk.source_page}"
-            if source not in sources:
-                sources.append(source)
+        sources = list(set(f"{chunk.filename} - page {chunk.source_page}" for chunk in context_chunks))
         
         return {
             "response": response.choices[0].message.content,
             "sources": sources
         }
+
     @staticmethod
     def chat_with_context(db: Session, chat_request: ChatRequest, user_id):
         context = ContextRepository.get_by_id_and_owner(db, chat_request.context_id, user_id)
@@ -119,20 +103,18 @@ class ChatService:
                 response=f"You have not added any documents to the context. Go to [this page]({DOCUCHAT_WEB_URL}/contexts/{context.id}) to add"
             )
         
-        query_embedding = ChatService.get_embedding(chat_request.message)
-
-        doc_ids = []
-
-        for doc in documents:
-            doc_ids.append(doc.id)
-
+        query = ChatService.format_chat_for_vector_search(chat_request.history, chat_request.message)
+        query_embedding = ChatService.get_embedding(query)
+        
+        doc_ids = [doc.id for doc in documents]
         relevant_chunks = ChatRepository.get_relevant_chunk_by_context_and_query(db, doc_ids, query_embedding)
-
-        if not relevant_chunks and len(chat_request.history) == 0:
+        
+        if not relevant_chunks and not chat_request.history:
             return ChatResponse(
                 response="I don't have enough information to answer that question based on the available documents.",
                 sources=[]
             )
+        
         response_data = ChatService.generate_response(
             query=chat_request.message,
             context_chunks=relevant_chunks,
@@ -143,4 +125,32 @@ class ChatService:
             response=response_data["response"],
             sources=response_data["sources"]
         )
-
+    
+    @staticmethod
+    def format_chat_for_vector_search(chat_history: list, new_query: str, history_limit: int = 2) -> str:
+        """
+        Formats chat history and the new user query into a search-friendly string for vector retrieval.
+        
+        Parameters:
+            chat_history (list): List of previous chat messages in format [{"role": "user"/"assistant", "content": "..."}]
+            new_query (str): The latest user query.
+            history_limit (int): Number of past user-assistant exchanges to include.
+        
+        Returns:
+            str: A formatted string combining relevant chat history and the new query.
+        """
+        relevant_history = []
+        
+        # Extract last `history_limit` user-assistant exchanges
+        exchanges = [chat_history[i:i+2] for i in range(0, len(chat_history)-1, 2)]
+        recent_exchanges = exchanges[-history_limit:]
+        
+        for exchange in recent_exchanges:
+            for message in exchange:
+                role = message["role"]
+                content = message["content"]
+                relevant_history.append(f"{role.capitalize()}: {content}")
+        
+        # Combine history and new query
+        history_text = "\n".join(relevant_history)
+        return f"{history_text}\nUser: {new_query}" if history_text else f"User: {new_query}"
