@@ -128,7 +128,7 @@ class ChatService:
 
         relevant_chunks = ChatRepository.get_relevant_chunk_by_context_and_query(db, doc_ids, query_embedding)
 
-        if not relevant_chunks:
+        if not relevant_chunks and len(chat_request.history) == 0:
             return ChatResponse(
                 response="I don't have enough information to answer that question based on the available documents.",
                 sources=[]

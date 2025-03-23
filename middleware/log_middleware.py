@@ -8,7 +8,6 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("app.log"),  # Save logs to app.log
         logging.StreamHandler()  # Also print logs to console
     ]
 )

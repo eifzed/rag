@@ -16,7 +16,7 @@ from middleware.log_middleware import LoggingMiddleware
 
 app = FastAPI(title="RAG LLM System")
 
-app.add_middleware(LoggingMiddleware)
+# app.add_middleware(LoggingMiddleware)
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
