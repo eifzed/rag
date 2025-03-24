@@ -110,6 +110,12 @@ class DocumentService:
                 file_data=document_text.content.encode("utf-8")
             )
             DocumentRepository.insert(db, document)
+            db.commit()
+            db.refresh(document)
+            
+            if ENABLE_BACKGROUND_EMBEDDING == "1":
+                await publish_to_nsq("embed_document", {"document_id": str(document.id)})
+                return [document]
             
             
             # Process document

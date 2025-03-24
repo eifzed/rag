@@ -9,7 +9,7 @@ from utils.database import get_db
 class DocumentRepository:
     @staticmethod
     def get_by_context_id(db:Session, context_id):
-        return db.query(Document).filter(Document.context_id == context_id).order_by(Document.created_at.desc()).all()
+        return db.query(Document.id, Document.filename, Document.context_id, Document.content_type, Document.created_at, Document.upload_status).filter(Document.context_id == context_id).order_by(Document.created_at.desc()).all()
     
     @staticmethod
     def get_by_id(db:Session, id):
