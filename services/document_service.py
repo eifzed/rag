@@ -186,8 +186,7 @@ class DocumentService:
 
             document.upload_status = UploadStatus.SUCCESS
         except Exception as e:
-            print(f"Error processing document {documentId}: {e}")
-            document.upload_status = UploadStatus.FAILED_PROCESSING
+            document.upload_status = UploadStatus.FAILED
             db.commit()
             raise
 
