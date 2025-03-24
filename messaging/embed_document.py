@@ -17,6 +17,7 @@ nsq_readers = []
 def handle_message(message, processor):
     try:
         data = json.loads(message.body.decode())
+        print("receievd nsq", data)
         print(f"Processing message: {data}")
         processor(data)
         message.finish()
@@ -32,9 +33,6 @@ def start_nsq_consumer(topic: str, channel: str, processor):
         # nsqd_tcp_addresses=[f"http://nsqd.railway.internal:4150"],
         message_handler=lambda msg: handle_message(msg, processor),
         max_in_flight=2,
-        lookupd_poll_interval=15,  # Increase from default
-        lookupd_poll_jitter=0.3,   # Add some jitter
-        lookupd_connect_timeout=5  # Increase timeout
     )
     nsq_readers.append(reader)
     return reader

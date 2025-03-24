@@ -9,6 +9,9 @@ import httpx
 NSQD_HTTP_ADDRESS = os.getenv("NSQD_HTTP_ADDRESS")
 NSQD_HTTP_PORT = os.getenv("NSQD_HTTP_PORT")
 
+NSQD_TCP_ADDRESS = os.getenv("NSQD_TCP_ADDRESS")
+NSQD_TCP_PORT = os.getenv("NSQD_TCP_PORT")
+
 async def publish_to_nsq(topic: str, data: dict):
     """
     Publish a message to NSQ with proper connection handling.
@@ -23,7 +26,7 @@ async def publish_to_nsq(topic: str, data: dict):
     writer = None
     try:
         # Create a new writer
-        writer = nsq.Writer(["https://nsqd-production-99bc.up.railway.app"])
+        writer = nsq.Writer([f"{NSQD_TCP_ADDRESS}:{NSQD_TCP_PORT}"])
         
         # Give it a moment to establish connections
         await asyncio.sleep(0.5)
@@ -55,10 +58,6 @@ async def publish_to_nsq(topic: str, data: dict):
     except Exception as e:
         print(f"Error publishing to NSQ: {e}")
         return False
-    finally:
-        # Only close the writer after the operation completes
-        if writer:
-            writer.close()
 
 
 async def send_to_nsq_api(topic: str, payload: dict):

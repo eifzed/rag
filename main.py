@@ -29,18 +29,7 @@ def run_nsq_consumers():
     # Start the NSQ consumers in a separate thread
     tornado.ioloop.IOLoop.instance().start()
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    print("=======lifespan======")
-    start_nsq_consumer("embed_document", "embed_document_worker", DocumentService.process_background_document_embedding)
-    nsq_thread = threading.Thread(target=run_nsq_consumers, daemon=True)
-    nsq_thread.start()
-
-    yield  # Hand over control to the application
-    await close_consumer_conn()
-    print("Shutting down...")
-
-app = FastAPI(title="RAG LLM System", lifespan=lifespan)
+app = FastAPI(title="RAG LLM System")
 
 # app.add_middleware(LoggingMiddleware)
 # Configure CORS
