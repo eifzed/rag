@@ -6,8 +6,8 @@ import asyncio
 import httpx
 
 
-NSQD_TCP_ADDRESS = os.getenv("NSQD_TCP_ADDRESS")
-NSQD_TCP_PORT = os.getenv("NSQD_TCP_PORT")
+NSQD_HTTP_ADDRESS = os.getenv("NSQD_HTTP_ADDRESS")
+NSQD_HTTP_PORT = os.getenv("NSQD_HTTP_PORT")
 
 async def publish_to_nsq(topic: str, data: dict):
     """
@@ -62,7 +62,7 @@ async def publish_to_nsq(topic: str, data: dict):
 
 
 async def send_to_nsq_api(topic: str, payload: dict):
-    url = f"https://nsqd-production-99bc.up.railway.app/pub?topic={topic}"
+    url = f"{NSQD_HTTP_ADDRESS}:{NSQD_HTTP_PORT}/pub?topic={topic}"
     async with httpx.AsyncClient() as client:
         response = await client.post(url, json=payload)
         return response

@@ -9,9 +9,8 @@ from services.document_service import DocumentService
 
 
 MAX_RETRIES = int(os.getenv("MAX_RETRIES"))
-NSQD_TCP_ADDRESS = os.getenv("NSQD_TCP_ADDRESS")
-NSQD_TCP_PORT = os.getenv("NSQD_TCP_PORT")
-NSQ_LOOKUPD_HTTP_ADDRESS = os.getenv("NSQ_LOOKUPD_HTTP_ADDRESS")
+NSQLOOKUPD_HTTP_ADDRESS = os.getenv("NSQLOOKUPD_HTTP_ADDRESS")
+NSQLOOKUPD_HTTP_PORT = os.getenv("NSQLOOKUPD_HTTP_PORT")
 nsq_readers = []
 
 
@@ -29,7 +28,7 @@ def start_nsq_consumer(topic: str, channel: str, processor):
     reader = nsq.Reader(
         topic=topic,
         channel=channel,
-        lookupd_http_addresses=["http://nsqlookupd.railway.internal:4161"],
+        lookupd_http_addresses=[f"{NSQLOOKUPD_HTTP_ADDRESS}:{NSQLOOKUPD_HTTP_PORT}"],
         # nsqd_tcp_addresses=[f"http://nsqd.railway.internal:4150"],
         message_handler=lambda msg: handle_message(msg, processor),
         max_in_flight=2,
