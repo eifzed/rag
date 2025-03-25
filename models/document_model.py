@@ -18,7 +18,7 @@ class Document(Base):
     file_data = Column(LargeBinary, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    upload_status = Column(Enum(UploadStatus), nullable=True)
+    upload_status = Column(String, nullable=True)
 
     context = relationship("Context", back_populates="documents")
     chunks = relationship("DocumentChunk", back_populates="document", cascade="all, delete-orphan")
