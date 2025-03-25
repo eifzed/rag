@@ -62,7 +62,7 @@ class DocumentService:
                     filename=file.filename,
                     content_type=file.content_type,
                     file_data=file_content,
-                    upload_status = UploadStatus.IN_QUEUE
+                    upload_status = UploadStatus.IN_QUEUE.value
                 )
                 DocumentRepository.insert(db, document)
                 db.commit()
@@ -177,16 +177,16 @@ class DocumentService:
             print("document not found or already processed")
             return
 
-        document.upload_status = UploadStatus.PROCESSING
+        document.upload_status = UploadStatus.PROCESSING.value
         db.commit()
         db.refresh(document)
 
         try:
             DocumentService.chunk_and_embed_document(db, document)
 
-            document.upload_status = UploadStatus.SUCCESS
+            document.upload_status = UploadStatus.SUCCESS.value
         except Exception as e:
-            document.upload_status = UploadStatus.FAILED
+            document.upload_status = UploadStatus.FAILED.value
             db.commit()
             raise
 
