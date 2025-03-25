@@ -107,7 +107,8 @@ class DocumentService:
                 context_id=context_id,
                 filename=document_text.filename,
                 content_type="text/url-scrape",
-                file_data=document_text.content.encode("utf-8")
+                file_data=document_text.content.encode("utf-8"),
+                upload_status = UploadStatus.IN_QUEUE.value
             )
             DocumentRepository.insert(db, document)
             db.commit()
