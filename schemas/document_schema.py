@@ -8,7 +8,7 @@ import uuid
 class DocumentBase(BaseModel):
     filename: str
     content_type: str
-    upload_status: UploadStatus
+    upload_status: Optional[UploadStatus] = None
 
 class DocumentCreate(DocumentBase):
     pass
