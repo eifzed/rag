@@ -10,8 +10,9 @@ from repository.document_chunk_repository import DocumentChunkRepository
 from typing import List
 from schemas.base_schema import BaseResponse
 from schemas.document_schema import DocumentText
+import os
 
-
+MAX_DOCUMENT_PER_CONTEXT = int(os.getenv("MAX_DOCUMENT_PER_CONTEXT", 5))
 
 class ContextService:
     @staticmethod
@@ -43,6 +44,9 @@ class ContextService:
         if not context:
             raise HTTPException(status_code=404, detail="Context not found")
         
+        if DocumentRepository.get_number_of_documents_by_context_id(db, context.id) > MAX_DOCUMENT_PER_CONTEXT:
+            raise HTTPException(status_code=403, detail="You have exceed the number of documents per context, delete one or more to upload")
+        
         documents = await DocumentService.insert_context_document(db, context_id, files)
         return documents
     
@@ -51,6 +55,9 @@ class ContextService:
         context = ContextRepository.get_by_id_and_owner(db, context_id, owner_id)
         if not context:
             raise HTTPException(status_code=404, detail="Context not found")
+        
+        if DocumentRepository.get_number_of_documents_by_context_id(db, context.id) > MAX_DOCUMENT_PER_CONTEXT:
+            raise HTTPException(status_code=403, detail="You have exceed the number of documents per context, delete one or more to upload")
         
         documents = await DocumentService.insert_context_text(db, context_id, document_text)
         return documents

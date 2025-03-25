@@ -37,7 +37,7 @@ class ContextRepository:
         else:
             q = q.filter(Context.owner_id==owner_id, Context.name.ilike(f'%{name}%'))
         
-        return q.all()
+        return q.order_by(Context.created_at.desc()).all()
     
     @staticmethod
     def delete_by_id(db:Session,  id):

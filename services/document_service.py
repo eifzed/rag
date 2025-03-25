@@ -55,7 +55,7 @@ class DocumentService:
             documents = []
             for file in files:
                 file_content = await file.read()
-                
+
                 # Save document to database
                 document = Document(
                     context_id=context_id,
