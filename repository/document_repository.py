@@ -17,7 +17,7 @@ class DocumentRepository:
     
     @staticmethod
     def get_unfinished_by_id(db:Session, id):
-        return db.query(Document).filter(and_(Document.id == id, Document.upload_status != UploadStatus.SUCCESS)).first()
+        return db.query(Document).filter(and_(Document.id == id, Document.upload_status != UploadStatus.SUCCESS.value)).first()
 
     @staticmethod
     def insert(db:Session, document: Document):
