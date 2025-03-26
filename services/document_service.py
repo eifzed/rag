@@ -115,7 +115,7 @@ class DocumentService:
             
             if ENABLE_BACKGROUND_EMBEDDING == "1":
                 await publish_to_nsq("embed_document", {"document_id": str(document.id)})
-                return [document]
+                return document
             
             
             # Process document
