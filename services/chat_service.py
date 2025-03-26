@@ -72,7 +72,13 @@ class ChatService:
         
         # Format chat history
         formatted_query = ChatService.format_chat_for_vector_search(history, query)
-        messages.append({"role": "user", "content": formatted_query})
+        
+        # Add formatted history as separate messages instead of combining with query
+        for msg in history:
+            messages.append({"role": msg["role"], "content": msg["content"]})
+        
+        # Add the current query as the final user message
+        messages.append({"role": "user", "content": query})
         
         response = client.chat.completions.create(
             model=LLM_MODEL,
@@ -100,17 +106,39 @@ class ChatService:
                 response=f"You have not added any documents to the context. Go to [this page]({DOCUCHAT_WEB_URL}/contexts/{context.id}) to add"
             )
         
+        # Create a more comprehensive query by combining history and current message
         query = ChatService.format_chat_for_vector_search(chat_request.history, chat_request.message)
         query_embedding = ChatService.get_embedding(query)
         
         doc_ids = [doc.id for doc in documents]
-        relevant_chunks = ChatRepository.get_relevant_chunk_by_context_and_query(db, doc_ids, query_embedding)
+        
+        # Adjust top_k based on query complexity
+        query_words = len(query.split())
+        dynamic_top_k = min(max(3, query_words // 10), 8)  # Between 3-8 based on query length
+        
+        # Get relevant chunks with dynamic top_k
+        relevant_chunks = ChatRepository.get_relevant_chunk_by_context_and_query(
+            db, 
+            doc_ids, 
+            query_embedding,
+            top_k=dynamic_top_k
+        )
+        
+        # If we don't have enough relevant chunks, try to get more context
+        if len(relevant_chunks) < 2 and not chat_request.history:
+            # Try with a more lenient threshold
+            relevant_chunks = ChatRepository.get_relevant_chunk_by_context_and_query(
+                db, doc_ids, query_embedding, top_k=dynamic_top_k, similarity_threshold=0.5
+            )
         
         if not relevant_chunks and not chat_request.history:
             return ChatResponse(
                 response="I don't have enough information to answer that question based on the available documents.",
                 sources=[]
             )
+        
+        # Sort chunks by relevance for better context organization
+        relevant_chunks.sort(key=lambda x: DocumentChunk.embedding.cosine_distance(x.embedding, query_embedding))
         
         response_data = ChatService.generate_response(
             query=chat_request.message,

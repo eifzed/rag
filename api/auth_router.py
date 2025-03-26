@@ -25,4 +25,4 @@ async def login(user: LoginRequest, db: Session = Depends(get_db)):
 
 @router.get("/auth/me", response_model=UserResponse)
 async def read_users_me(current_user: User = Depends(AuthService.get_current_user)):
-            return current_user
+    return current_user
