@@ -12,6 +12,7 @@ from repository.chat_repository import ChatRepository
 from repository.context_repository import ContextRepository
 from repository.document_repository import DocumentRepository
 from fastapi import HTTPException
+from utils.vector import cosine_distance
 
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -160,9 +161,6 @@ class ChatService:
                 response="I don't have enough information to answer that question based on the available documents.",
                 sources=[]
             )
-        
-        # Sort chunks by relevance for better context organization
-        relevant_chunks.sort(key=lambda x: DocumentChunk.embedding.cosine_distance(x.embedding, query_embedding))
         
         response_data = ChatService.generate_response(
             query=chat_request.message,

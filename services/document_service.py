@@ -183,14 +183,10 @@ class DocumentService:
                 print(f"Document {document_id} not found or already processed")
                 return
 
-            # Update status to processing
             document.upload_status = UploadStatus.PROCESSING.value
             db.commit()
             db.refresh(document)
-            
-            # Track start time for performance monitoring
-            start_time = time.time()
-            
+                        
             # Process the document
             DocumentService.chunk_and_embed_document(db, document)
             
