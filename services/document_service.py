@@ -169,22 +169,34 @@ class DocumentService:
         
     @staticmethod
     def process_background_document_embedding(documentdata):
-        db = next(get_db())
-        document_id = documentdata["document_id"]
-        document = DocumentRepository.get_unfinished_by_id(db, document_id)
-
-        if not document :
-            print("document not found or already processed")
+        db = None
+        document_id = documentdata.get("document_id")
+        if not document_id:
+            print("Error: No document_id provided in the message")
             return
-
-        document.upload_status = UploadStatus.PROCESSING.value
-        db.commit()
-        db.refresh(document)
-
+            
         try:
-            DocumentService.chunk_and_embed_document(db, document)
+            db = next(get_db())
+            document = DocumentRepository.get_unfinished_by_id(db, document_id)
 
+            if not document:
+                print(f"Document {document_id} not found or already processed")
+                return
+
+            # Update status to processing
+            document.upload_status = UploadStatus.PROCESSING.value
+            db.commit()
+            db.refresh(document)
+            
+            # Track start time for performance monitoring
+            start_time = time.time()
+            
+            # Process the document
+            DocumentService.chunk_and_embed_document(db, document)
+            
+            # Update status to success
             document.upload_status = UploadStatus.SUCCESS.value
+            db.commit()            
         except Exception as e:
             document.upload_status = UploadStatus.FAILED.value
             db.commit()

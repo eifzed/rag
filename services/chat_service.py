@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import numpy as np
 import openai
 from sqlalchemy.orm import Session
@@ -22,13 +23,40 @@ client = openai.OpenAI()
 
 class ChatService:
     @staticmethod
-    def get_embedding(text):
-        """Get embedding for text using OpenAI API"""
-        response = client.embeddings.create(
-            input=text,
-            model=EMBEDDING_MODEL
-        )
-        return response.data[0].embedding
+    def get_embedding(text, retry_count=3):
+        """
+        Get embedding for text using OpenAI API with retry logic and error handling
+        
+        Args:
+            text: The text to embed
+            retry_count: Number of retries on failure
+            
+        Returns:
+            List of floats representing the embedding vector
+        """
+        if not text or text.strip() == "":
+            return [0.0] * 1536  # Return zero vector for empty text
+            
+        # Truncate text if it's too long (OpenAI has token limits)
+        max_tokens = 8000  # Adjust based on model limits
+        if len(text) > max_tokens * 4:  # Rough estimate: 4 chars per token
+            text = text[:max_tokens * 4]
+            
+        for attempt in range(retry_count):
+            try:
+                response = client.embeddings.create(
+                    input=text,
+                    model=EMBEDDING_MODEL
+                )
+                return response.data[0].embedding
+            except Exception as e:
+                if attempt == retry_count - 1:  # Last attempt
+                    print(f"Failed to get embedding after {retry_count} attempts: {str(e)}")
+                    # Return a zero vector as fallback
+                    return [0.0] * 1536  # Adjust dimension based on your model
+                else:
+                    # Exponential backoff
+                    time.sleep(2 ** attempt)
 
     @staticmethod
     def retrieve_relevant_chunks(db: Session, context_id: str, query_embedding, top_k=5):
@@ -47,26 +75,22 @@ class ChatService:
         messages = [
         {"role": "system", 
          "content": f"""
-            You are a helpful assistant that answers questions **ONLY** using the given context and message history. 
-            If the answer is not in the context or message history, reply: "I don't know based on the provided context."
+            You are a knowledgeable assistant that provides accurate information based exclusively on the provided context and conversation history.
 
-            Examples:
-            User: What is the capital of France?  
-            Context: (contains no relevant info)  
-            Assistant: I don't know based on the provided context.
+            CONTEXT INFORMATION:
+            {context_text}
 
-            User: What is the best sorting algorithm?  
-            Context: (contains details about Python syntax but nothing on sorting)  
-            Assistant: I don't know based on the provided context.
+            INSTRUCTIONS:
+            1. Answer questions ONLY using information from the provided context and previous conversation history.
+            2. If the answer cannot be fully determined from the context or history, state: "Based on the available information, I cannot provide a complete answer to that question."
+            3. Do not use prior knowledge or make assumptions beyond what is explicitly stated in the context.
+            4. When citing information, refer to the specific document number (e.g., "According to Document 2...").
+            5. If the user asks for clarification about a previous answer, refer to both the context and the conversation history.
+            6. Provide concise, well-structured answers that directly address the user's query.
+            7. If the user's question is ambiguous, ask for clarification rather than making assumptions.
+            8. If the context contains conflicting information, acknowledge the discrepancy and present both viewpoints.
 
-            User: How many employment types are there?  
-            Context: (contains relevant info)  
-            Assistant: There are two types of employment: full-time and contract
-            User: can you expand on the first one?
-            Context: (contains relevant info about full-time eployement)
-            Assistant: (explain full-time employment based on context)
-
-            Context: {context_text}
+            Remember: Your goal is to be helpful while remaining strictly faithful to the provided information.
         """}        
         ]
         
@@ -164,18 +188,36 @@ class ChatService:
         Returns:
             str: A formatted string combining relevant chat history and the new query.
         """
+        if not chat_history:
+            return f"User: {new_query}"
+            
         relevant_history = []
         
-        # Extract last `history_limit` user-assistant exchanges
-        exchanges = [chat_history[i:i+2] for i in range(0, len(chat_history)-1, 2)]
-        recent_exchanges = exchanges[-history_limit:]
+        # Handle case where history might not be perfectly paired
+        # Take the most recent messages up to 2*history_limit (to account for both user and assistant messages)
+        recent_messages = chat_history[-2*history_limit:] if len(chat_history) > 2*history_limit else chat_history
         
-        for exchange in recent_exchanges:
-            for message in exchange:
-                role = message["role"]
-                content = message["content"]
+        for message in recent_messages:
+            # Validate message format and skip if invalid
+            if not isinstance(message, dict) or "role" not in message or "content" not in message:
+                continue
+                
+            role = message.get("role", "").lower()
+            content = message.get("content", "").strip()
+            
+            # Skip empty messages
+            if not content:
+                continue
+                
+            # Only include user and assistant roles
+            if role in ["user", "assistant"]:
                 relevant_history.append(f"{role.capitalize()}: {content}")
         
         # Combine history and new query
         history_text = "\n".join(relevant_history)
-        return f"{history_text}\nUser: {new_query}" if history_text else f"User: {new_query}"
+        
+        # Add the new query with a separator for better context distinction
+        if history_text:
+            return f"{history_text}\nUser: {new_query}"
+        else:
+            return f"User: {new_query}"
