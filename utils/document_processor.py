@@ -44,8 +44,11 @@ class DocumentProcessor:
             text[1] = contents.decode('utf-8')  # Read markdown or plain text
 
         else:
-            raise ValueError(f"Unsupported MIME type: {mime_type}")
-
+            try:
+                text[1] = contents.decode('utf-8')
+            except Exception:
+                raise ValueError(f"Unsupported MIME type: {mime_type}")
+        
         return text
 
     @staticmethod
