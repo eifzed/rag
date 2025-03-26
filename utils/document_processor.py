@@ -40,11 +40,6 @@ class DocumentProcessor:
             with fitz.open(stream=BytesIO(contents), filetype="pdf") as pdf:
                 for i, page in enumerate(pdf):
                     text[i+1] = page.get_text("text") + "\n"  # Extract text from each page
-
-        elif mime_type in ["text/csv"]:
-            df = pd.read_csv(StringIO(contents.decode('utf-8')))
-            text[1] = df.to_csv(index=False, sep="\t")  # Convert DataFrame to text
-
         elif mime_type in ["text/markdown", "text/plain", "text/url-scrape"]:
             text[1] = contents.decode('utf-8')  # Read markdown or plain text
 
