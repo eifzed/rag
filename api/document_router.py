@@ -27,13 +27,15 @@ async def update_context_file(
     
     if not files:
         raise HTTPException(status_code=403, detail="Please provide the files to be uploaded")
-    real_file_size = 0
+    
 
-    for chunk in files.file:
-        real_file_size += len(chunk)
-        if real_file_size > MAX_FILE_SIZE:
-            raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Too large")
+    for file in files:
+        real_file_size = 0
+        for chunk in file.file:
+            real_file_size += len(chunk)
+            if real_file_size > MAX_FILE_SIZE:
+                raise HTTPException(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Too large")
         
     documents = await ContextService.upload_context_file(db, context_id, get_user_id_from_req(request), files)
     return documents
