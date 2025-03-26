@@ -50,45 +50,44 @@ class DocumentService:
         return BaseResponse(status=200, message="deleted")
 
     @staticmethod
-    async def insert_context_document(db:Session, context_id:str, files:List[UploadFile])->List[Document]:
+    async def insert_context_document(db:Session, context_id:str, file:UploadFile)->Document:
         try:
             documents = []
-            for file in files:
-                file_content = await file.read()
+            file_content = await file.read()
 
-                # Save document to database
-                document = Document(
-                    context_id=context_id,
-                    filename=file.filename,
-                    content_type=file.content_type,
-                    file_data=file_content,
-                    upload_status = UploadStatus.IN_QUEUE.value
+            document = Document(
+                context_id=context_id,
+                filename=file.filename,
+                content_type=file.content_type,
+                file_data=file_content,
+                upload_status = UploadStatus.IN_QUEUE.value
+            )
+            DocumentRepository.insert(db, document)
+            db.commit()
+            db.refresh(document)
+            documents.append(document)
+            
+            if ENABLE_BACKGROUND_EMBEDDING == "1":
+                await publish_to_nsq("embed_document", {"document_id": str(document.id)})
+                return document
+            
+            # Process document
+            page_map = DocumentProcessor.extract_text_from_file(file_content, file.content_type)
+            chunks = DocumentProcessor.chunk_text_with_page_tracking(page_map)
+            
+            # Save chunks with embeddings
+            for i, chunk_text in enumerate(chunks):
+                embedding = DocumentProcessor.get_embedding(chunk_text[1])
+                chunk = DocumentChunk(
+                    document_id=document.id,
+                    chunk_index=i,
+                    content=chunk_text,
+                    embedding=embedding,
+                    source_page = chunk_text[0],
+                    filename=file.filename
                 )
-                DocumentRepository.insert(db, document)
-                db.commit()
-                db.refresh(document)
-                documents.append(document)
+                DocumentChunkRepository.insert(db, chunk)
                 
-                if ENABLE_BACKGROUND_EMBEDDING == "1":
-                    await publish_to_nsq("embed_document", {"document_id": str(document.id)})
-                    continue
-                
-                # Process document
-                page_map = DocumentProcessor.extract_text_from_file(file_content, file.content_type)
-                chunks = DocumentProcessor.chunk_text_with_page_tracking(page_map)
-                
-                # Save chunks with embeddings
-                for i, chunk_text in enumerate(chunks):
-                    embedding = DocumentProcessor.get_embedding(chunk_text[1])
-                    chunk = DocumentChunk(
-                        document_id=document.id,
-                        chunk_index=i,
-                        content=chunk_text,
-                        embedding=embedding,
-                        source_page = chunk_text[0],
-                        filename=file.filename
-                    )
-                    DocumentChunkRepository.insert(db, chunk)
                 
             db.commit()
             
@@ -98,7 +97,7 @@ class DocumentService:
             raise HTTPException(status_code=500, detail=str(e))
     
     @staticmethod
-    async def insert_context_text(db:Session, context_id:str, document_text: DocumentText)->List[Document]:
+    async def insert_context_text(db:Session, context_id:str, document_text: DocumentText)->Document:
         try:
                 
             # Save document to database
@@ -139,7 +138,7 @@ class DocumentService:
             db.commit()
             db.refresh(document)
                 
-            return [document]
+            return document
         except Exception as e:
             print(e)
             raise HTTPException(status_code=500, detail=str(e))

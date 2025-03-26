@@ -15,33 +15,33 @@ router = APIRouter()
 MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE_MB", 5)) * 1024 * 1024
 MAX_TEXT_SIZE = int(os.getenv("MAX_TEXT_CHAR_COUNT", 10000))
 
-@router.post("/contexts/{context_id}/documents", response_model=List[DocumentResponse])
+@router.post("/contexts/{context_id}/documents", response_model=DocumentResponse)
 async def update_context_file(
     request: Request,
     context_id: str = Path(...), 
-    files: List[UploadFile] = File(None),
+    file: UploadFile = File(None),
     db:Session = Depends(get_db)):
     """
     Add new file to existing context
     """
     
-    if not files:
+    if not file:
         raise HTTPException(status_code=403, detail="Please provide the files to be uploaded")
     
 
-    for file in files:
-        real_file_size = 0
-        for chunk in file.file:
-            real_file_size += len(chunk)
-            if real_file_size > MAX_FILE_SIZE:
-                raise HTTPException(
-                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Too large")
+    real_file_size = 0
+    for chunk in file.file:
+        real_file_size += len(chunk)
+        if real_file_size > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Too large")
         
-    documents = await ContextService.upload_context_file(db, context_id, get_user_id_from_req(request), files)
-    return documents
+        
+    document = await ContextService.upload_context_file(db, context_id, get_user_id_from_req(request), file)
+    return document
 
 
-@router.post("/contexts/{context_id}/text", response_model=List[DocumentResponse])
+@router.post("/contexts/{context_id}/text", response_model=DocumentResponse)
 async def update_context_text(
     request: Request,
     context_id: str = Path(...), 
@@ -58,8 +58,8 @@ async def update_context_text(
         raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Too large")
     
-    documents = await ContextService.upload_context_text(db, context_id, get_user_id_from_req(request), text_data)
-    return documents
+    document = await ContextService.upload_context_text(db, context_id, get_user_id_from_req(request), text_data)
+    return document
 
 
 @router.delete("/contexts/{context_id}/documents/{document_id}")

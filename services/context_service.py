@@ -39,12 +39,12 @@ class ContextService:
         return ContextResponse(id=context.id, created_at=context.created_at, description=context.description, files=documents, name=context.name, updated_at=context.updated_at)
     
     @staticmethod
-    async def upload_context_file(db: Session, context_id:str, owner_id, files:List[UploadFile] = None):
+    async def upload_context_file(db: Session, context_id:str, owner_id, files:UploadFile = None):
         context = ContextRepository.get_by_id_and_owner(db, context_id, owner_id)
         if not context:
             raise HTTPException(status_code=404, detail="Context not found")
         
-        if DocumentRepository.get_number_of_documents_by_context_id(db, context.id) > MAX_DOCUMENT_PER_CONTEXT:
+        if DocumentRepository.get_number_of_documents_by_context_id(db, context.id) >= MAX_DOCUMENT_PER_CONTEXT:
             raise HTTPException(status_code=403, detail="You have exceed the number of documents per context, delete one or more to upload")
         
         documents = await DocumentService.insert_context_document(db, context_id, files)
