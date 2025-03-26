@@ -47,7 +47,7 @@ async def update_context_text(
     
     if len(text_data.content) > MAX_TEXT_SIZE:
         raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Too large")
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=f"Too large. should be less than {MAX_TEXT_SIZE} characters")
     
     document = await ContextService.upload_context_text(db, context_id, get_user_id_from_req(request), text_data)
     return document
