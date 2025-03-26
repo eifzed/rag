@@ -7,6 +7,7 @@ from messaging.embed_document import start_nsq_consumer, close_consumer_conn
 from services.document_service import DocumentService
 import threading
 import tornado.ioloop
+from middleware.payload_size_middleware import PayloadSizeMiddleware
 
 
 
@@ -42,8 +43,11 @@ app.add_middleware(
     expose_headers=["Content-Disposition"]
 )
 
+MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", 5))
+
 app.add_middleware(AuthMiddleware)
 
+app.add_middleware(PayloadSizeMiddleware, max_size=MAX_FILE_SIZE_MB*1024 * 1024)
 
 # Include routers
 app.include_router(context_router, prefix="/api", tags=["contexts"])
