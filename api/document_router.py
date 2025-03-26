@@ -19,7 +19,7 @@ MAX_TEXT_SIZE = int(os.getenv("MAX_TEXT_CHAR_COUNT", 10000))
 async def update_context_file(
     request: Request,
     context_id: str = Path(...), 
-    file: UploadFile = File(None),
+    file: UploadFile = File(...),
     db:Session = Depends(get_db)):
     """
     Add new file to existing context
