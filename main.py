@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,10 +16,7 @@ from api.chat_router import router as chat_router
 from api.auth_router import router as auth_router
 from api.scrape_router import router as scrape_router
 from middleware.auth_middleware import AuthMiddleware
-from middleware.log_middleware import LoggingMiddleware
-from dotenv import load_dotenv
 
-load_dotenv()
 
 def run_nsq_consumers():
     # Start the NSQ consumers in a separate thread

@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 
 
 
-PUBLIC_PATHS = ["/api/auth/login", "/api/auth/signup"]
+PUBLIC_PATHS = ["/", "", "/api/auth/login", "/api/auth/signup"]
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 
