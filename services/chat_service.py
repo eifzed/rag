@@ -1,18 +1,12 @@
 import os
-import json
 import time
-import numpy as np
 import openai
 from sqlalchemy.orm import Session
-from models.document_chunk_model import DocumentChunk
-from models.document_model import Document
-from sqlalchemy import select
 from schemas.chat_schema import ChatRequest, ChatResponse
 from repository.chat_repository import ChatRepository
 from repository.context_repository import ContextRepository
 from repository.document_repository import DocumentRepository
 from fastapi import HTTPException
-from utils.vector import cosine_distance
 
 
 openai.api_key = os.getenv("OPENAI_API_KEY")

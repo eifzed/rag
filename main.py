@@ -1,16 +1,9 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
 import os
-from messaging.embed_document import start_nsq_consumer, close_consumer_conn
-from services.document_service import DocumentService
-import threading
 import tornado.ioloop
 from middleware.payload_size_middleware import PayloadSizeMiddleware
-
-
-
 
 
 # Fix the imports to use the correct file paths
@@ -19,7 +12,6 @@ from api.document_router import router as document_router
 from api.chat_router import router as chat_router
 from api.auth_router import router as auth_router
 from api.scrape_router import router as scrape_router
-from utils.database import create_tables
 from middleware.auth_middleware import AuthMiddleware
 from middleware.log_middleware import LoggingMiddleware
 from dotenv import load_dotenv
