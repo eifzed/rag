@@ -1,12 +1,14 @@
 """
 Simple NSQ Consumer that reads configuration from environment variables
 """
+from dotenv import load_dotenv
+load_dotenv()
 import json
 import time
 import signal
 import logging
 import os
-from dotenv import load_dotenv
+
 # from services.document_service import DocumentService
 from services.document_service import DocumentService
 import nsq
@@ -19,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 # Load environment variables from .env file
-load_dotenv()
+
 
 # NSQ Configuration
 NSQ_TOPIC = os.getenv('NSQ_TOPIC', 'messages')
